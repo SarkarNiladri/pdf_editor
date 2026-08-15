@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Document Converter</title>
+<style>
+:root{--blue:#2563eb;--blue2:#1d4ed8;--bg:#f4f7fb;--card:#fff;--line:#dbe3ee;--text:#172033;--muted:#64748b}
+*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+.header{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 24px;gap:28px;box-shadow:0 1px 8px #0f172a0d}
+.brand{font-size:20px;font-weight:800;display:flex;gap:10px;align-items:center}.brand-icon{background:var(--blue);color:#fff;border-radius:9px;padding:7px 9px}
+.nav{display:flex;gap:4px}.nav button{border:0;background:transparent;padding:10px 14px;border-radius:8px;font-weight:700;color:#64748b;cursor:pointer}.nav button.active,.nav button:hover{background:#eff6ff;color:var(--blue)}
+.wrap{max-width:1100px;margin:30px auto;padding:0 20px}.hero{text-align:center;margin-bottom:22px}.hero h1{margin:0 0 7px;font-size:30px}.hero p{margin:0;color:var(--muted)}
+.converter-card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 28px #0f172a0b;padding:24px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:22px}
+.tab{border:1px solid var(--line);background:#fff;color:#334155;padding:10px 13px;border-radius:9px;font-weight:700;cursor:pointer}
+.tab:hover{background:#f8fafc}.tab.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.panel{display:none}.panel.active{display:block}
+.drop{border:2px dashed #b8c6d8;border-radius:14px;min-height:210px;display:flex;align-items:center;justify-content:center;text-align:center;padding:25px;background:#fbfdff;transition:.15s}
+.drop.drag{border-color:var(--blue);background:#eff6ff}.drop h3{margin:0 0 7px}.drop p{color:var(--muted);margin:0 0 15px}
+.choose{display:inline-flex;background:var(--blue);color:#fff;padding:11px 17px;border-radius:8px;font-weight:700;cursor:pointer}.choose:hover{background:var(--blue2)}input[type=file]{display:none}
+.files{margin-top:14px;display:grid;gap:8px}.file{display:flex;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:13px}
+.actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.convert{background:var(--blue);color:#fff;border:0;border-radius:9px;padding:11px 18px;font-weight:800;cursor:pointer}.convert:hover{background:var(--blue2)}.convert:disabled{opacity:.45;cursor:not-allowed}
+.status{margin-top:15px;padding:11px;border-radius:8px;background:#f8fafc;color:#475569;font-size:13px;display:none}.status.show{display:block}.status.error{background:#fef2f2;color:#b91c1c}.status.ok{background:#f0fdf4;color:#166534}
+.note{margin-top:14px;color:var(--muted);font-size:12px}.cap{display:inline-block;margin:5px 5px 0 0;padding:5px 8px;background:#f1f5f9;border-radius:999px}
+@media(max-width:700px){.header{padding:0 12px;gap:10px}.nav{overflow:auto}.wrap{margin-top:18px;padding:0 12px}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="brand"><span class="brand-icon">▣</span> Document Converter</div>
+  <nav class="nav">
+    <button class="active" data-nav="converter">Converter</button>
+    <button onclick="if(window.parent!==window){window.parent.postMessage('show-editor','*')}else{window.close()}">Back to Editor</button>
+  </nav>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Convert your documents</h1>
+    <p>Choose a conversion, upload your file, and download the result.</p>
+  </div>
+
+  <section class="converter-card">
+    <div class="tabs">
+      <button class="tab active" data-conversion="word-to-pdf">Word → PDF</button>
+      <button class="tab" data-conversion="pdf-to-word">PDF → Word</button>
+      <button class="tab" data-conversion="excel-to-pdf">Excel → PDF</button>
+      <button class="tab" data-conversion="powerpoint-to-pdf">PowerPoint → PDF</button>
+      <button class="tab" data-conversion="images-to-pdf">Images → PDF</button>
+      <button class="tab" data-conversion="pdf-to-images">PDF → Images</button>
+      <button class="tab" data-conversion="merge-pdf">Merge PDFs</button>
+    </div>
+
+    <div id="panel" class="panel active">
+      <div class="drop" id="drop">
+        <div>
+          <h3 id="dropTitle">Upload a Word document</h3>
+          <p id="dropHint">DOC, DOCX or ODT • up to 50 MB</p>
+          <label class="choose">Choose file<input id="files" type="file"></label>
+        </div>
+      </div>
+      <div class="files" id="fileList"></div>
+      <div class="actions"><button class="convert" id="convertBtn" disabled>Convert to PDF</button></div>
+      <div class="status" id="status"></div>
+      <div class="note" id="note">Word, Excel and PowerPoint conversion uses LibreOffice on the local machine.</div>
+    </div>
+  </section>
+</div>
+
+<script>
+let conversion='word-to-pdf', selectedFiles=[];
+const $=id=>document.getElementById(id);
+const specs={
+ 'word-to-pdf':{title:'Upload a Word document',hint:'DOC, DOCX or ODT • up to 50 MB',accept:'.doc,.docx,.odt',multiple:false,button:'Convert to PDF'},
+ 'pdf-to-word':{title:'Upload a PDF',hint:'One PDF • text will be extracted into a Word document',accept:'.pdf',multiple:false,button:'Convert to Word'},
+ 'excel-to-pdf':{title:'Upload an Excel workbook',hint:'XLS, XLSX or ODS • up to 50 MB',accept:'.xls,.xlsx,.ods',multiple:false,button:'Convert to PDF'},
+ 'powerpoint-to-pdf':{title:'Upload a PowerPoint presentation',hint:'PPT, PPTX or ODP • up to 50 MB',accept:'.ppt,.pptx,.odp',multiple:false,button:'Convert to PDF'},
+ 'images-to-pdf':{title:'Upload images',hint:'PNG, JPG, JPEG or WebP • multiple files allowed',accept:'.png,.jpg,.jpeg,.webp',multiple:true,button:'Create PDF'},
+ 'pdf-to-images':{title:'Upload a PDF',hint:'One PDF • pages are exported as PNG images',accept:'.pdf',multiple:false,button:'Convert to Images'},
+ 'merge-pdf':{title:'Upload PDFs to merge',hint:'Select two or more PDF files',accept:'.pdf',multiple:true,button:'Merge PDFs'}
+};
+function setStatus(text,type=''){const s=$('status');s.textContent=text;s.className='status show '+type}
+function renderFiles(){const list=$('fileList');list.innerHTML='';selectedFiles.forEach(f=>{const d=document.createElement('div');d.className='file';d.innerHTML=`<span>${escapeHtml(f.name)}</span><span>${(f.size/1024/1024).toFixed(2)} MB</span>`;list.appendChild(d)});$('convertBtn').disabled=selectedFiles.length===0}
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function configure(){const s=specs[conversion];$('dropTitle').textContent=s.title;$('dropHint').textContent=s.hint;$('files').accept=s.accept;$('files').multiple=s.multiple;$('convertBtn').textContent=s.button;selectedFiles=[];renderFiles();setStatus('')}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');conversion=b.dataset.conversion;configure()}));
+$('files').addEventListener('change',e=>{selectedFiles=[...e.target.files];renderFiles()});
+$('drop').addEventListener('dragover',e=>{e.preventDefault();$('drop').classList.add('drag')});
+$('drop').addEventListener('dragleave',()=>$('drop').classList.remove('drag'));
+$('drop').addEventListener('drop',e=>{e.preventDefault();$('drop').classList.remove('drag');selectedFiles=[...e.dataTransfer.files];renderFiles()});
+$('convertBtn').addEventListener('click',async()=>{
+  const s=specs[conversion];
+  if(!selectedFiles.length)return;
+  if(conversion==='merge-pdf'&&selectedFiles.length<2){setStatus('Select at least two PDFs.','error');return}
+  const form=new FormData();form.append('conversion',conversion);selectedFiles.forEach(f=>form.append('files',f));
+  const btn=$('convertBtn');btn.disabled=true;setStatus('Converting…');
+  try{
+    const res=await fetch('/api/convert',{method:'POST',body:form});
+    if(!res.ok){let msg='Conversion failed.';try{msg=(await res.json()).error||msg}catch{}throw new Error(msg)}
+    const blob=await res.blob();const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=conversion==='pdf-to-images'?'page_1.png':conversion==='pdf-to-word'?'converted.docx':conversion==='merge-pdf'?'merged.pdf':'converted.pdf';a.click();URL.revokeObjectURL(url);setStatus('Conversion completed. Download started.','ok')
+  }catch(err){setStatus(err.message,'error')}finally{btn.disabled=false;renderFiles()}
+});
+configure();
+</script>
+</body>
+</html>
