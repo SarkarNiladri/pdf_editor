@@ -24,31 +24,22 @@ from converter import (
 def index():
     return send_file(PROJECT_ROOT / 'index.html', mimetype='text/html')
 
+
+# ---------- PDF text extraction (unchanged) ----------
+
 def span_color(span):
     return '#{:06x}'.format(int(span.get('color', 0)) & 0xFFFFFF)
 
 def span_is_bold(span):
-    # Font name heuristic is the most reliable indicator.
-    # The PDF font-flag bit 6 (value 64) is "ForceBold" — a synthetic hint
-    # that some fonts set.  We check it as a secondary signal but rely
-    # primarily on the font name containing 'bold'.
     font_name = (span.get('font') or '').lower()
     if 'bold' in font_name:
         return True
     flags = int(span.get('flags', 0))
-    return bool(flags & 64)  # PDF ForceBold flag (bit 6)
+    return bool(flags & 64)
 
 def span_is_italic(span):
     f = (span.get('font') or '').lower()
     return 'italic' in f or 'oblique' in f or bool(int(span.get('flags', 0)) & 2)
-
-def choose_font(font):
-    f = (font or '').lower()
-    if 'courier' in f: return 'cour'
-    if 'times' in f: return 'tiro'
-    if 'symbol' in f: return 'symb'
-    if 'zapfdingbats' in f: return 'zapfdingbats'
-    return 'helv'
 
 def hex_to_rgb01(value):
     value = (value or '#000000').lstrip('#')
@@ -68,7 +59,8 @@ def extract_pages(data):
     try:
         for pno, page in enumerate(doc):
             line_records = []
-            blocks = page.get_text('dict', flags=fitz.TEXTFLAGS_TEXT).get('blocks', [])
+            flags = getattr(fitz, 'TEXTFLAGS_TEXT', 0)
+            blocks = page.get_text('dict', flags=flags).get('blocks', [])
             for block in blocks:
                 if block.get('type') != 0:
                     continue
@@ -122,13 +114,13 @@ def extract_pages(data):
     finally:
         doc.close()
 
+
 @app.post('/api/extract')
 def extract():
     file = request.files.get('file')
     if not file:
         return jsonify({'error': 'No PDF uploaded'}), 400
     data = file.read()
-    # Validate PDF magic bytes
     if not data.startswith(b'%PDF'):
         return jsonify({'error': 'The uploaded file is not a valid PDF.'}), 400
     try:
@@ -137,16 +129,97 @@ def extract():
         return jsonify({'error': f'Invalid PDF: {e}'}), 400
     return jsonify({'pdf': base64.b64encode(data).decode('ascii'), 'pageCount': len(pages), 'pages': pages})
 
-def insert_text(page, rect, text, font_size, color, fontname):
-    """Insert text into a PDF page. Returns True if text fit, False if truncated."""
+
+# ---------- Render page endpoint ----------
+
+@app.post('/api/render-page')
+def render_page():
+    payload = request.get_json(force=True) or {}
+    pdf_b64 = payload.get('pdf')
+    if not pdf_b64:
+        return jsonify({'error': 'Missing PDF data'}), 400
+    try:
+        pdf_bytes = base64.b64decode(pdf_b64)
+    except Exception:
+        return jsonify({'error': 'Invalid base64 PDF data'}), 400
+    page_num = int(payload.get('page', 1)) - 1
+    scale = float(payload.get('scale', 1.5))
+    if scale <= 0 or scale > 5:
+        scale = 1.5
+
+    doc = fitz.open(stream=pdf_bytes, filetype='pdf')
+    try:
+        if page_num < 0 or page_num >= len(doc):
+            return jsonify({'error': 'Page number out of range'}), 400
+        page = doc[page_num]
+        mat = fitz.Matrix(scale, scale)
+        pix = page.get_pixmap(matrix=mat, alpha=False)
+        img_data = pix.tobytes('png')
+        return send_file(io.BytesIO(img_data), mimetype='image/png')
+    finally:
+        doc.close()
+
+
+# ---------- Editing ----------
+
+def get_pdf_font_name(family, bold=False, italic=False):
+    """
+    Map a UI font family and style to a PDF base font name.
+    Returns a string like 'Helvetica', 'Helvetica-Bold', 'Times-Italic', etc.
+    """
+    family_lower = (family or '').lower()
+    # Recognise the family
+    if 'times' in family_lower or 'roman' in family_lower:
+        base = 'Times-Roman'
+    elif 'courier' in family_lower:
+        base = 'Courier'
+    elif 'symbol' in family_lower:
+        base = 'Symbol'
+    elif 'zapf' in family_lower or 'dingbat' in family_lower:
+        base = 'ZapfDingbats'
+    else:
+        base = 'Helvetica'  # default (Arial, Helvetica, sans-serif)
+
+    # Apply style
+    if base in ('Symbol', 'ZapfDingbats'):
+        # These fonts do not have bold/italic variants
+        return base
+
+    if bold and italic:
+        return f'{base}-BoldOblique' if base == 'Helvetica' else f'{base}-BoldItalic'
+    elif bold:
+        return f'{base}-Bold'
+    elif italic:
+        return f'{base}-Oblique' if base == 'Helvetica' else f'{base}-Italic'
+    else:
+        return base
+
+def insert_text(page, rect, text, font_size, color, fontname, bold=False, italic=False):
+    """Insert text into a PDF page using the correct PDF font name."""
     if not text.strip():
         return True
-    result = page.insert_textbox(rect, text, fontsize=font_size, fontname=fontname, color=color, align=fitz.TEXT_ALIGN_LEFT, overlay=True)
+    pdf_font = get_pdf_font_name(fontname, bold, italic)
+    result = page.insert_textbox(
+        rect, text,
+        fontsize=font_size,
+        fontname=pdf_font,
+        color=color,
+        align=fitz.TEXT_ALIGN_LEFT,
+        overlay=True
+    )
     if result < 0:
         expanded = fitz.Rect(rect.x0, rect.y0, rect.x1, min(page.rect.y1 - 2, rect.y1 + abs(result) + font_size * 1.5))
-        result2 = page.insert_textbox(expanded, text, fontsize=font_size, fontname=fontname, color=color, align=fitz.TEXT_ALIGN_LEFT, overlay=True)
+        result2 = page.insert_textbox(
+            expanded, text,
+            fontsize=font_size,
+            fontname=pdf_font,
+            color=color,
+            align=fitz.TEXT_ALIGN_LEFT,
+            overlay=True
+        )
         return result2 >= 0
     return True
+
 
 def decode_image_data(value):
     if not value or not isinstance(value, str):
@@ -188,9 +261,6 @@ def insert_image(page, edit):
 def apply_edits(raw, edits):
     doc = fitz.open(stream=raw, filetype='pdf')
     try:
-        # Paint order: respect creation order so that later-added objects appear
-        # on top, regardless of type.  Existing (edited) text has no order and
-        # is rendered first as the base layer.
         existing_edits = [e for e in (edits or []) if e.get('type') not in ('shape', 'image', 'add') and not e.get('order')]
         added_edits = [e for e in (edits or []) if e.get('order')]
         added_edits.sort(key=lambda e: int(e.get('order', 0)))
@@ -233,17 +303,30 @@ def apply_edits(raw, edits):
             target_rect = rect_from_data(edit.get('rect'))
             original_rect = rect_from_data(edit.get('originalRect') or edit.get('rect'))
             if not is_added:
-                # NOTE: Redaction-based removal is an approximation. If two text
-                # regions overlap (common in complex PDF layouts), redacting one
-                # region may destroy parts of adjacent, unedited text within the
-                # redaction zone. This is an inherent limitation of the overlay
-                # editing approach.
                 cleanup = fitz.Rect(original_rect.x0 - 1, original_rect.y0 - 1, original_rect.x1 + 1, original_rect.y1 + 1)
                 page.add_redact_annot(cleanup, fill=False)
                 page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE, graphics=fitz.PDF_REDACT_LINE_ART_NONE, text=fitz.PDF_REDACT_TEXT_REMOVE)
             if edit.get('deleted') or not new_text.strip():
                 continue
-            insert_text(page, target_rect, new_text, float(edit.get('fontSize') or 12), hex_to_rgb01(edit.get('color') or '#000000'), choose_font(edit.get('font', '')))
+            # Use the stored font and style; for existing text, use original font if not changed
+            font = edit.get('font')
+            # If this is an existing text edit and the font hasn't been changed by user, use the original font
+            if not is_added and not edit.get('font_changed'):
+                original_item = None
+                # We can retrieve original font from edit's original fields
+                font = edit.get('originalFont', edit.get('font', 'Helvetica'))
+            else:
+                font = edit.get('font', 'Helvetica')
+            bold = edit.get('bold', False)
+            italic = edit.get('italic', False)
+            insert_text(
+                page, target_rect, new_text,
+                float(edit.get('fontSize') or 12),
+                hex_to_rgb01(edit.get('color') or '#000000'),
+                font,
+                bold,
+                italic
+            )
         out = io.BytesIO()
         doc.save(out, garbage=4, deflate=True, clean=True)
         out.seek(0)
@@ -277,15 +360,15 @@ def edit():
         traceback.print_exc()
         return jsonify({'error': f'{type(e).__name__}: {e}'}), 500
 
+
+# ---------- Converter routes ----------
+
 @app.get('/converter')
 def converter_ui():
     converter_html = PROJECT_ROOT / 'converter.html'
     if not converter_html.is_file():
         return jsonify({'error': f'Converter UI not found: {converter_html}'}), 500
     return send_file(converter_html, mimetype='text/html')
-
-
-# --- Reuse converter.py's shared logic instead of duplicating route handlers ---
 
 @app.get('/api/capabilities')
 def converter_capabilities():
@@ -299,7 +382,6 @@ def converter_capabilities():
         'pdf_to_images': True,
         'merge_pdf': True,
     })
-
 
 @app.post('/api/convert')
 def converter_convert():
