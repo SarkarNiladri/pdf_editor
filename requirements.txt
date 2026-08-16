@@ -3,3 +3,7 @@ PyMuPDF>=1.23.0
 python-docx>=0.8.11
 pdf2docx>=0.5.0
 Pillow>=9.0.0
+gunicorn>=21.0.0
+Werkzeug>=2.0.0
+Jinja2>=3.0.0
+EOF
