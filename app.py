@@ -4,12 +4,16 @@ import base64
 import tempfile
 import subprocess
 import shutil
+import re
+from datetime import datetime
 from pathlib import Path
 
 from flask import Flask, request, jsonify, send_file
 import fitz
 from dotenv import load_dotenv
 import openai
+import pdfplumber
+import dateparser
 
 # Load environment variables from .env
 load_dotenv()
@@ -34,7 +38,7 @@ def index():
     return send_file(PROJECT_ROOT / 'index.html', mimetype='text/html')
 
 
-# ---------- PDF text extraction (unchanged) ----------
+# ---------- PDF text extraction ----------
 def span_color(span):
     return '#{:06x}'.format(int(span.get('color', 0)) & 0xFFFFFF)
 
@@ -357,7 +361,7 @@ def edit():
         return jsonify({'error': f'{type(e).__name__}: {e}'}), 500
 
 
-# ---------- Summarization with OpenAI ----------
+# ---------- AI Summarization ----------
 def extract_all_text(pdf_bytes):
     doc = fitz.open(stream=pdf_bytes, filetype='pdf')
     text = ""
@@ -394,7 +398,7 @@ def summarize_pdf():
     try:
         client = openai.OpenAI(api_key=api_key)
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",  # or "gpt-4o-mini"
+            model="gpt-3.5-turbo",
             messages=[
                 {
                     "role": "system",
@@ -422,6 +426,214 @@ def summarize_pdf():
         return jsonify({'error': 'OpenAI API rate limit exceeded. Please wait and try again.'}), 429
     except Exception as e:
         return jsonify({'error': f'OpenAI API error: {str(e)}'}), 500
+
+
+# ---------- ATS Compatibility Checker ----------
+# Lists of action verbs and skills (can be expanded)
+ACTION_VERBS = {
+    "achieved", "managed", "led", "developed", "built", "created", "designed",
+    "implemented", "improved", "increased", "decreased", "reduced", "solved",
+    "analyzed", "coordinated", "delivered", "launched", "optimized", "streamlined",
+    "facilitated", "mentored", "spearheaded", "drove", "executed", "generated",
+    "negotiated", "presented", "supervised", "trained", "transformed", "introduced"
+}
+
+TECH_SKILLS = {
+    "python", "java", "c++", "c#", "javascript", "typescript", "react", "angular",
+    "vue", "node.js", "express", "django", "flask", "spring", "sql", "mysql",
+    "postgresql", "mongodb", "docker", "kubernetes", "aws", "azure", "gcp",
+    "linux", "git", "jenkins", "ci/cd", "agile", "scrum", "kanban", "jira",
+    "confluence", "data analysis", "machine learning", "deep learning", "nlp",
+    "computer vision", "tableau", "power bi", "excel", "vba", "html", "css",
+    "bootstrap", "sass", "webpack", "rest api", "graphql", "microservices",
+    "unity", "unreal", "android", "ios", "swift", "kotlin", "rust", "go",
+    "perl", "ruby", "php", "wordpress", "shopify", "salesforce", "workday"
+}
+
+def extract_text_from_file(file_storage):
+    """Extract text from PDF (using pdfplumber) or DOCX."""
+    filename = file_storage.filename.lower()
+    if filename.endswith('.pdf'):
+        # Use pdfplumber for better table/column handling
+        with pdfplumber.open(file_storage) as pdf:
+            text = ""
+            for page in pdf.pages:
+                page_text = page.extract_text() or ""
+                text += page_text + "\n"
+        return text
+    elif filename.endswith('.docx'):
+        from docx import Document as DocxDocument
+        doc = DocxDocument(file_storage)
+        text = "\n".join([para.text for para in doc.paragraphs])
+        return text
+    else:
+        raise ValueError("Unsupported file format. Please upload a PDF or DOCX.")
+
+def ats_check(file_storage):
+    """Run ATS compatibility analysis and return scores."""
+    try:
+        text = extract_text_from_file(file_storage)
+    except Exception as e:
+        return {"error": f"Could not read file: {str(e)}"}
+
+    if not text or len(text.strip()) < 50:
+        return {"error": "Document appears empty or contains very little text."}
+
+    text_lower = text.lower()
+    words = text_lower.split()
+    word_count = len(words)
+
+    # ---------- 1. Parseability (10%) ----------
+    parseable_score = 10
+    if word_count < 100:
+        parseable_score = 0
+    elif word_count < 200:
+        parseable_score = 5
+    alpha_chars = sum(c.isalpha() for c in text)
+    total_chars = len(text)
+    if total_chars > 0 and alpha_chars / total_chars < 0.4:
+        parseable_score = max(0, parseable_score - 5)
+
+    # ---------- 2. Structure & Sections (20%) ----------
+    section_keywords = {
+        "summary": ["summary", "profile", "about me", "objective"],
+        "education": ["education", "academic", "university", "college", "school", "degree"],
+        "experience": ["experience", "employment", "work history", "professional experience"],
+        "skills": ["skills", "technical skills", "core competencies", "expertise"],
+        "projects": ["projects", "personal projects", "academic projects"],
+        "certifications": ["certifications", "certificates", "licenses", "courses"],
+        "languages": ["languages", "language", "bilingual"]
+    }
+    sections_found = 0
+    for section, keywords in section_keywords.items():
+        if any(kw in text_lower for kw in keywords):
+            sections_found += 1
+    structure_score = min(20, sections_found * 3)
+
+    # ---------- 3. Formatting (15%) ----------
+    formatting_score = 0
+    bullet_lines = re.findall(r'^\s*[-*•\d]+\.?\s+', text, re.MULTILINE)
+    if len(bullet_lines) >= 5:
+        formatting_score += 7
+    elif len(bullet_lines) >= 2:
+        formatting_score += 4
+    if "\n\n\n" not in text:
+        formatting_score += 4
+    elif "\n\n\n\n" not in text:
+        formatting_score += 2
+    formatting_score = min(15, formatting_score)
+
+    # ---------- 4. Contact Information (10%) ----------
+    contact_score = 0
+    email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    if re.search(email_pattern, text):
+        contact_score += 4
+    phone_pattern = r'(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'
+    if re.search(phone_pattern, text):
+        contact_score += 3
+    if re.search(r'(linkedin\.com/in/|github\.com/)', text_lower):
+        contact_score += 3
+    contact_score = min(10, contact_score)
+
+    # ---------- 5. Experience Date Consistency (15%) ----------
+    date_score = 0
+    date_pattern = r'\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{4}\b|\b\d{1,2}/\d{1,2}/\d{4}\b|\b\d{4}\b'
+    raw_dates = re.findall(date_pattern, text_lower, re.IGNORECASE)
+    parsed_years = []
+    for d in raw_dates:
+        parsed = dateparser.parse(d, languages=['en'])
+        if parsed:
+            parsed_years.append(parsed.year)
+    if len(parsed_years) >= 2:
+        years = sorted(parsed_years, reverse=True)
+        if all(years[i] >= years[i+1] for i in range(len(years)-1)):
+            date_score += 8
+        current_year = datetime.now().year
+        if any(year >= current_year - 2 for year in years):
+            date_score += 4
+        if max(years) - min(years) < 20:
+            date_score += 3
+    elif len(parsed_years) == 1:
+        date_score = 5
+    date_score = min(15, date_score)
+
+    # ---------- 6. Content Quality (15%) ----------
+    quality_score = 0
+    if word_count > 300:
+        quality_score += 5
+    elif word_count > 150:
+        quality_score += 3
+    verb_count = sum(1 for w in words if w in ACTION_VERBS)
+    if verb_count >= 10:
+        quality_score += 5
+    elif verb_count >= 5:
+        quality_score += 3
+    numbers = re.findall(r'\b\d+%|\$\d+|\d+\s*(percent|%)|\b\d{1,3}(,\d{3})*\b', text)
+    if len(numbers) >= 3:
+        quality_score += 5
+    elif len(numbers) >= 1:
+        quality_score += 2
+    quality_score = min(15, quality_score)
+
+    # ---------- 7. Skill Coverage (15%) ----------
+    skill_count = sum(1 for skill in TECH_SKILLS if skill in text_lower)
+    if skill_count >= 10:
+        skill_score = 15
+    elif skill_count >= 6:
+        skill_score = 12
+    elif skill_count >= 3:
+        skill_score = 8
+    else:
+        skill_score = 4
+
+    # ---------- ✅ CORRECTED TOTAL SCORE ----------
+    # Convert each score to percentage of its max, then apply weight
+    total_score = (
+        (parseable_score / 10) * 10 +
+        (structure_score / 20) * 20 +
+        (formatting_score / 15) * 15 +
+        (contact_score / 10) * 10 +
+        (date_score / 15) * 15 +
+        (quality_score / 15) * 15 +
+        (skill_score / 15) * 15
+    )
+    total_score = round(total_score, 1)
+
+    return {
+        "total": total_score,
+        "breakdown": {
+            "parseability": {"score": parseable_score, "max": 10, "weight": 0.10},
+            "structure": {"score": structure_score, "max": 20, "weight": 0.20},
+            "formatting": {"score": formatting_score, "max": 15, "weight": 0.15},
+            "contact": {"score": contact_score, "max": 10, "weight": 0.10},
+            "date_consistency": {"score": date_score, "max": 15, "weight": 0.15},
+            "content_quality": {"score": quality_score, "max": 15, "weight": 0.15},
+            "skill_coverage": {"score": skill_score, "max": 15, "weight": 0.15},
+        },
+        "word_count": word_count,
+        "sections_found": sections_found,
+        "skills_detected": skill_count,
+    }
+
+@app.post('/api/ats-check')
+def ats_check_endpoint():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+
+    ext = file.filename.rsplit('.', 1)[-1].lower()
+    if ext not in ['pdf', 'docx']:
+        return jsonify({'error': 'Unsupported file format. Please upload a PDF or DOCX.'}), 400
+
+    try:
+        result = ats_check(file)
+        if 'error' in result:
+            return jsonify(result), 400
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': f'Analysis failed: {str(e)}'}), 500
 
 
 # ---------- Converter routes ----------

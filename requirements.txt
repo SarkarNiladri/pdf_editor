@@ -8,3 +8,7 @@ Werkzeug>=2.0.0
 Jinja2>=3.0.0
 openai>=1.0.0
 python-dotenv>=1.0.0
+
+#ATS Checker dependencies
+pdfplumber>=0.10.0
+dateparser>=1.2.0
