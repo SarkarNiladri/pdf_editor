@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+venv_*/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Environment variables
+.env
+.env.local
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and temporary files
+*.log
+converter_uploads/
+converter_outputs/
+*.tmp
+*.temp
+
+# OS files
+.DS_Store
+Thumbs.db

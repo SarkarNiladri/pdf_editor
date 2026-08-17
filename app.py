@@ -1,5 +1,4 @@
-from flask import Flask, request, jsonify, send_file
-import fitz
+import os
 import io
 import base64
 import tempfile
@@ -7,11 +6,20 @@ import subprocess
 import shutil
 from pathlib import Path
 
+from flask import Flask, request, jsonify, send_file
+import fitz
+from dotenv import load_dotenv
+import openai
+
+# Load environment variables from .env
+load_dotenv()
+
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024  # 200 MB for JSON body (base64 PDF)
+app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024  # 200 MB
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 
+# Import converter functions
 from converter import (
     find_libreoffice, office_to_pdf, images_to_pdf, pdf_to_word,
     pdf_to_images, merge_pdfs, safe_name, cleanup_images_dir,
@@ -20,13 +28,13 @@ from converter import (
 )
 
 
+# ---------- Routes ----------
 @app.route('/')
 def index():
     return send_file(PROJECT_ROOT / 'index.html', mimetype='text/html')
 
 
 # ---------- PDF text extraction (unchanged) ----------
-
 def span_color(span):
     return '#{:06x}'.format(int(span.get('color', 0)) & 0xFFFFFF)
 
@@ -131,7 +139,6 @@ def extract():
 
 
 # ---------- Render page endpoint ----------
-
 @app.post('/api/render-page')
 def render_page():
     payload = request.get_json(force=True) or {}
@@ -161,14 +168,8 @@ def render_page():
 
 
 # ---------- Editing ----------
-
 def get_pdf_font_name(family, bold=False, italic=False):
-    """
-    Map a UI font family and style to a PDF base font name.
-    Returns a string like 'Helvetica', 'Helvetica-Bold', 'Times-Italic', etc.
-    """
     family_lower = (family or '').lower()
-    # Recognise the family
     if 'times' in family_lower or 'roman' in family_lower:
         base = 'Times-Roman'
     elif 'courier' in family_lower:
@@ -178,11 +179,9 @@ def get_pdf_font_name(family, bold=False, italic=False):
     elif 'zapf' in family_lower or 'dingbat' in family_lower:
         base = 'ZapfDingbats'
     else:
-        base = 'Helvetica'  # default (Arial, Helvetica, sans-serif)
+        base = 'Helvetica'
 
-    # Apply style
     if base in ('Symbol', 'ZapfDingbats'):
-        # These fonts do not have bold/italic variants
         return base
 
     if bold and italic:
@@ -195,31 +194,32 @@ def get_pdf_font_name(family, bold=False, italic=False):
         return base
 
 def insert_text(page, rect, text, font_size, color, fontname, bold=False, italic=False):
-    """Insert text into a PDF page using the correct PDF font name."""
-    if not text.strip():
+    """Insert multi‑line text without any automatic wrapping."""
+    if not text or not text.strip():
         return True
+
+    lines = text.split('\n')
+    if not lines:
+        return True
+
     pdf_font = get_pdf_font_name(fontname, bold, italic)
-    result = page.insert_textbox(
-        rect, text,
-        fontsize=font_size,
-        fontname=pdf_font,
-        color=color,
-        align=fitz.TEXT_ALIGN_LEFT,
-        overlay=True
-    )
-    if result < 0:
-        expanded = fitz.Rect(rect.x0, rect.y0, rect.x1, min(page.rect.y1 - 2, rect.y1 + abs(result) + font_size * 1.5))
-        result2 = page.insert_textbox(
-            expanded, text,
+    line_height = font_size * 1.2
+    y = rect.y0
+
+    for line in lines:
+        page.insert_text(
+            (rect.x0, y),
+            line,
             fontsize=font_size,
             fontname=pdf_font,
             color=color,
-            align=fitz.TEXT_ALIGN_LEFT,
             overlay=True
         )
-        return result2 >= 0
-    return True
+        y += line_height
+        if y > rect.y1 + font_size:
+            break
 
+    return True
 
 def decode_image_data(value):
     if not value or not isinstance(value, str):
@@ -286,8 +286,8 @@ def apply_edits(raw, edits):
                 shape_rect = rect_from_data(edit.get('rect'))
                 if shape_rect.width <= 0 or shape_rect.height <= 0:
                     continue
-                fill = hex_to_rgb01(edit.get('fill') or '#1677ff')
-                stroke = hex_to_rgb01(edit.get('stroke') or edit.get('fill') or '#1677ff')
+                fill = hex_to_rgb01(edit.get('fill') or '#6366f1')
+                stroke = hex_to_rgb01(edit.get('stroke') or edit.get('fill') or '#6366f1')
                 try:
                     width = max(0.5, float(edit.get('strokeWidth') or 1))
                 except (TypeError, ValueError):
@@ -308,12 +308,8 @@ def apply_edits(raw, edits):
                 page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE, graphics=fitz.PDF_REDACT_LINE_ART_NONE, text=fitz.PDF_REDACT_TEXT_REMOVE)
             if edit.get('deleted') or not new_text.strip():
                 continue
-            # Use the stored font and style; for existing text, use original font if not changed
             font = edit.get('font')
-            # If this is an existing text edit and the font hasn't been changed by user, use the original font
             if not is_added and not edit.get('font_changed'):
-                original_item = None
-                # We can retrieve original font from edit's original fields
                 font = edit.get('originalFont', edit.get('font', 'Helvetica'))
             else:
                 font = edit.get('font', 'Helvetica')
@@ -361,8 +357,74 @@ def edit():
         return jsonify({'error': f'{type(e).__name__}: {e}'}), 500
 
 
-# ---------- Converter routes ----------
+# ---------- Summarization with OpenAI ----------
+def extract_all_text(pdf_bytes):
+    doc = fitz.open(stream=pdf_bytes, filetype='pdf')
+    text = ""
+    for page in doc:
+        text += page.get_text()
+    doc.close()
+    return text
 
+@app.post('/api/summarize')
+def summarize_pdf():
+    data = request.get_json()
+    pdf_b64 = data.get('pdf')
+    if not pdf_b64:
+        return jsonify({'error': 'No PDF data provided'}), 400
+
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
+        return jsonify({'error': 'OpenAI API key is not configured. Please set OPENAI_API_KEY in .env'}), 500
+
+    try:
+        pdf_bytes = base64.b64decode(pdf_b64)
+    except Exception:
+        return jsonify({'error': 'Invalid base64 PDF'}), 400
+
+    full_text = extract_all_text(pdf_bytes)
+    if not full_text.strip():
+        return jsonify({'error': 'No text found in PDF. The document might be scanned or image-based.'}), 400
+
+    # Truncate to avoid token limits (~12,000 chars)
+    max_chars = 12000
+    if len(full_text) > max_chars:
+        full_text = full_text[:max_chars] + "\n\n[Document truncated due to length...]"
+
+    try:
+        client = openai.OpenAI(api_key=api_key)
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",  # or "gpt-4o-mini"
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a document summarization assistant. "
+                        "Summarize the provided document in 5 to 7 concise sentences, "
+                        "capturing the main purpose, key arguments, and conclusions. "
+                        "Use clear, professional language."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": f"Document text:\n\n{full_text}"
+                }
+            ],
+            max_tokens=300,
+            temperature=0.5
+        )
+        summary = response.choices[0].message.content.strip()
+        return jsonify({'summary': summary})
+
+    except openai.AuthenticationError:
+        return jsonify({'error': 'Invalid OpenAI API key. Please check your OPENAI_API_KEY in .env'}), 401
+    except openai.RateLimitError:
+        return jsonify({'error': 'OpenAI API rate limit exceeded. Please wait and try again.'}), 429
+    except Exception as e:
+        return jsonify({'error': f'OpenAI API error: {str(e)}'}), 500
+
+
+# ---------- Converter routes ----------
 @app.get('/converter')
 def converter_ui():
     converter_html = PROJECT_ROOT / 'converter.html'

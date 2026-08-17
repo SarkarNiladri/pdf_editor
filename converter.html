@@ -2,320 +2,256 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
   <title>Document Converter</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
   <style>
+    /* RESET & FULL WIDTH FORCE */
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    html, body {
+      width: 100%;
+      min-width: 100%;
+      margin: 0 !important;
+      padding: 0 !important;
       background: #f1f5f9;
-      color: #0f172a;
+      font-family: 'Inter', sans-serif;
+      overflow-x: auto;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
       min-height: 100vh;
     }
-    /* ----- Header ----- */
     .header {
-      height: 64px;
-      background: #ffffff;
+      height: 56px;
+      background: #fff;
       border-bottom: 1px solid #e2e8f0;
       display: flex;
       align-items: center;
-      padding: 0 24px;
-      gap: 20px;
+      padding: 0 16px;
+      gap: 16px;
       flex-shrink: 0;
+      width: 100%;
     }
     .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-size: 20px;
+      gap: 8px;
+      font-size: 18px;
       font-weight: 700;
-      letter-spacing: -0.3px;
+      white-space: nowrap;
     }
     .brand-icon {
       background: #4f46e5;
       color: #fff;
-      border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 18px;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 16px;
     }
     .nav {
       display: flex;
       gap: 4px;
       margin-left: auto;
+      flex-shrink: 0;
     }
     .nav button {
       border: none;
       background: transparent;
-      padding: 8px 16px;
-      border-radius: 8px;
+      padding: 6px 12px;
+      border-radius: 6px;
       font-weight: 600;
       color: #64748b;
       cursor: pointer;
       font-family: inherit;
-      font-size: 14px;
-      transition: all 0.2s;
+      font-size: 13px;
+      white-space: nowrap;
     }
-    .nav button:hover {
-      background: #f1f5f9;
-      color: #0f172a;
-    }
-    .nav button.active {
-      background: #eef2ff;
-      color: #4f46e5;
-    }
+    .nav button:hover { background: #f1f5f9; color: #0f172a; }
+    .nav button.active { background: #eef2ff; color: #4f46e5; }
 
-    /* ----- Main content ----- */
     .wrap {
-      max-width: 1100px;
-      margin: 30px auto;
-      padding: 0 20px;
+      flex: 1;
+      width: 100%;
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
     }
     .hero {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
+      flex-shrink: 0;
     }
-    .hero h1 {
-      font-size: 30px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-bottom: 6px;
-    }
-    .hero p {
-      color: #64748b;
-      font-size: 16px;
-    }
+    .hero h1 { font-size: 24px; font-weight: 700; margin-bottom: 2px; }
+    .hero p { color: #64748b; font-size: 14px; }
 
     .converter-card {
-      background: #ffffff;
+      background: #fff;
       border: 1px solid #e2e8f0;
-      border-radius: 16px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
-      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+      padding: 16px 12px;
+      width: 100%;
+      flex: 1;
     }
 
-    /* Conversion tabs (pill style) */
-    .tabs {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
+    /* TABS – NEVER WRAP, ALWAYS HORIZONTAL */
+    .tabs-wrapper {
       border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 16px;
-      margin-bottom: 22px;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      white-space: nowrap;
+      width: 100%;
+    }
+    .tabs-wrapper::-webkit-scrollbar { height: 5px; }
+    .tabs-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+    .tabs {
+      display: inline-block;
+      white-space: nowrap;
+      padding-bottom: 2px;
     }
     .tab {
-      padding: 8px 16px;
+      display: inline-block;
+      padding: 5px 12px;
       border: 1px solid #e2e8f0;
-      background: #ffffff;
+      background: #fff;
       border-radius: 999px;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 12px;
       color: #475569;
       cursor: pointer;
       transition: all 0.2s;
       font-family: inherit;
+      white-space: nowrap;
+      margin-right: 4px;
     }
-    .tab:hover {
-      background: #f8fafc;
-      border-color: #cbd5e1;
-    }
-    .tab.active {
-      background: #4f46e5;
-      border-color: #4f46e5;
-      color: #ffffff;
-    }
+    .tab:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .tab.active { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+    .tab:last-child { margin-right: 0; }
 
     .panel { display: none; }
     .panel.active { display: block; }
 
-    /* Drop zone */
     .drop-zone {
       border: 2px dashed #cbd5e1;
-      border-radius: 14px;
-      min-height: 200px;
+      border-radius: 12px;
+      min-height: 160px;
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 30px 20px;
+      padding: 20px 16px;
       background: #fafbfc;
-      transition: all 0.25s;
       cursor: pointer;
     }
-    .drop-zone.drag-over {
-      border-color: #4f46e5;
-      background: #eef2ff;
-    }
-    .drop-zone .icon {
-      font-size: 40px;
-      display: block;
-      margin-bottom: 8px;
-    }
-    .drop-zone h3 {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    .drop-zone p {
-      color: #64748b;
-      font-size: 14px;
-      margin-bottom: 14px;
-    }
+    .drop-zone.drag-over { border-color: #4f46e5; background: #eef2ff; }
+    .drop-zone .icon { font-size: 32px; display: block; margin-bottom: 4px; }
+    .drop-zone h3 { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+    .drop-zone p { color: #64748b; font-size: 13px; margin-bottom: 10px; }
     .drop-zone .choose {
       display: inline-flex;
       background: #4f46e5;
       color: #fff;
-      padding: 10px 20px;
-      border-radius: 8px;
+      padding: 6px 16px;
+      border-radius: 6px;
       font-weight: 600;
-      font-size: 14px;
+      font-size: 13px;
       cursor: pointer;
-      transition: background 0.2s;
       border: none;
     }
-    .drop-zone .choose:hover {
-      background: #4338ca;
-    }
-    .drop-zone input[type="file"] {
-      display: none;
-    }
+    .drop-zone .choose:hover { background: #4338ca; }
+    .drop-zone input[type="file"] { display: none; }
 
-    /* File list */
-    .files {
-      margin-top: 16px;
-      display: grid;
-      gap: 8px;
-    }
+    .files { margin-top: 12px; display: grid; gap: 6px; }
     .file-item {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 10px 14px;
+      padding: 6px 10px;
       background: #f8fafc;
       border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 14px;
-    }
-    .file-item .name {
-      font-weight: 500;
-      color: #0f172a;
-    }
-    .file-item .size {
-      color: #64748b;
+      border-radius: 6px;
       font-size: 13px;
     }
+    .file-item .name { font-weight: 500; color: #0f172a; word-break: break-word; }
+    .file-item .size { color: #64748b; font-size: 12px; margin-left: 8px; white-space: nowrap; }
 
-    /* Actions */
-    .actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 18px;
-    }
+    .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
     .convert-btn {
       background: #4f46e5;
       color: #fff;
       border: none;
-      border-radius: 8px;
-      padding: 12px 24px;
+      border-radius: 6px;
+      padding: 8px 18px;
       font-weight: 700;
-      font-size: 15px;
-      cursor: pointer;
-      transition: background 0.2s;
-      font-family: inherit;
-    }
-    .convert-btn:hover {
-      background: #4338ca;
-    }
-    .convert-btn:disabled {
-      opacity: 0.5;
-      pointer-events: none;
-    }
-
-    /* Status */
-    .status {
-      margin-top: 16px;
-      padding: 12px 16px;
-      border-radius: 8px;
-      background: #f8fafc;
-      color: #475569;
       font-size: 14px;
-      display: none;
+      cursor: pointer;
     }
+    .convert-btn:hover { background: #4338ca; }
+    .convert-btn:disabled { opacity: 0.5; pointer-events: none; }
+
+    .status { margin-top: 12px; padding: 8px 12px; border-radius: 6px; background: #f8fafc; color: #475569; font-size: 13px; display: none; }
     .status.show { display: block; }
-    .status.error {
-      background: #fef2f2;
-      color: #b91c1c;
-    }
-    .status.ok {
-      background: #f0fdf4;
-      color: #166534;
-    }
+    .status.error { background: #fef2f2; color: #b91c1c; }
+    .status.ok { background: #f0fdf4; color: #166534; }
 
-    .note {
-      margin-top: 16px;
-      color: #94a3b8;
-      font-size: 13px;
-      border-top: 1px solid #e2e8f0;
-      padding-top: 14px;
-    }
-    .cap {
-      display: inline-block;
-      margin: 4px 4px 0 0;
-      padding: 4px 10px;
-      background: #f1f5f9;
-      border-radius: 999px;
-      font-size: 12px;
-      color: #475569;
-    }
+    .note { margin-top: 12px; color: #94a3b8; font-size: 12px; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+    .cap { display: inline-block; margin: 2px 4px 0 0; padding: 2px 8px; background: #f1f5f9; border-radius: 999px; font-size: 11px; color: #475569; }
 
-    /* Responsive */
-    @media (max-width: 700px) {
-      .header { padding: 0 12px; gap: 12px; flex-wrap: wrap; }
-      .nav { margin-left: 0; width: 100%; justify-content: flex-start; overflow-x: auto; }
-      .wrap { margin-top: 16px; padding: 0 12px; }
-      .converter-card { padding: 16px; }
-      .tabs { gap: 4px; }
-      .tab { font-size: 12px; padding: 6px 12px; }
+    @media (max-width: 768px) {
+      .header { padding: 0 10px; gap: 10px; flex-wrap: wrap; height: auto; min-height: 48px; }
+      .brand { font-size: 16px; }
+      .nav { width: 100%; overflow-x: auto; gap: 2px; flex-wrap: nowrap; }
+      .nav button { font-size: 12px; padding: 4px 10px; }
+      .wrap { padding: 8px 4px; }
+      .hero h1 { font-size: 20px; }
+      .hero p { font-size: 13px; }
+      .converter-card { padding: 12px 8px; }
+      .tab { font-size: 11px; padding: 4px 10px; margin-right: 3px; }
+      .drop-zone { min-height: 130px; padding: 14px; }
+      .drop-zone .icon { font-size: 26px; }
+      .drop-zone h3 { font-size: 14px; }
+      .drop-zone p { font-size: 12px; }
+      .drop-zone .choose { font-size: 12px; padding: 4px 12px; }
+      .file-item { font-size: 12px; padding: 4px 8px; }
+      .convert-btn { width: 100%; justify-content: center; padding: 8px 14px; font-size: 13px; }
+      .actions { justify-content: stretch; }
+      .note { font-size: 11px; }
+    }
+    @media (max-width: 480px) {
+      .brand { font-size: 14px; }
+      .brand-icon { font-size: 12px; padding: 2px 6px; }
+      .hero h1 { font-size: 18px; }
+      .tab { font-size: 10px; padding: 3px 8px; margin-right: 2px; }
     }
   </style>
 </head>
 <body>
-  <!-- HEADER -->
   <header class="header">
-    <div class="brand">
-      <span class="brand-icon">▣</span> Document Converter
-    </div>
+    <div class="brand"><span class="brand-icon">▣</span> Document Converter</div>
     <nav class="nav">
       <button class="active" data-nav="converter">Converter</button>
-      <button onclick="if(window.parent!==window){window.parent.postMessage('show-editor','*')}else{window.close()}">
-        ⬅ Back to Editor
-      </button>
+      <button onclick="if(window.parent!==window){window.parent.postMessage('show-editor','*')}else{window.close()}">⬅ Back to Editor</button>
     </nav>
   </header>
-
-  <!-- MAIN -->
   <div class="wrap">
-    <div class="hero">
-      <h1>Convert your documents</h1>
-      <p>Choose a conversion, upload your file, and download the result.</p>
-    </div>
-
+    <div class="hero"><h1>Convert your documents</h1><p>Choose a conversion, upload your file, and download the result.</p></div>
     <section class="converter-card">
-      <div class="tabs" id="tabsContainer">
-        <button class="tab active" data-conversion="word-to-pdf">Word → PDF</button>
-        <button class="tab" data-conversion="pdf-to-word">PDF → Word</button>
-        <button class="tab" data-conversion="excel-to-pdf">Excel → PDF</button>
-        <button class="tab" data-conversion="powerpoint-to-pdf">PowerPoint → PDF</button>
-        <button class="tab" data-conversion="images-to-pdf">Images → PDF</button>
-        <button class="tab" data-conversion="pdf-to-images">PDF → Images</button>
-        <button class="tab" data-conversion="merge-pdf">Merge PDFs</button>
+      <div class="tabs-wrapper">
+        <div class="tabs" id="tabsContainer">
+          <button class="tab active" data-conversion="word-to-pdf">Word → PDF</button>
+          <button class="tab" data-conversion="pdf-to-word">PDF → Word</button>
+          <button class="tab" data-conversion="excel-to-pdf">Excel → PDF</button>
+          <button class="tab" data-conversion="powerpoint-to-pdf">PowerPoint → PDF</button>
+          <button class="tab" data-conversion="images-to-pdf">Images → PDF</button>
+          <button class="tab" data-conversion="pdf-to-images">PDF → Images</button>
+          <button class="tab" data-conversion="merge-pdf">Merge PDFs</button>
+        </div>
       </div>
-
       <div id="panel" class="panel active">
-        <!-- Drop zone -->
         <div class="drop-zone" id="drop">
           <div>
             <span class="icon">📤</span>
@@ -324,30 +260,15 @@
             <label class="choose">Choose file <input id="files" type="file"></label>
           </div>
         </div>
-
-        <!-- File list -->
         <div class="files" id="fileList"></div>
-
-        <!-- Actions -->
-        <div class="actions">
-          <button class="convert-btn" id="convertBtn" disabled>Convert to PDF</button>
-        </div>
-
-        <!-- Status -->
+        <div class="actions"><button class="convert-btn" id="convertBtn" disabled>Convert to PDF</button></div>
         <div class="status" id="status"></div>
-
-        <!-- Note -->
-        <div class="note" id="note">
-          Word, Excel and PowerPoint conversion uses LibreOffice on the local machine.
-          <span class="cap">📦 pdf2docx</span>
-          <span class="cap">📄 PyMuPDF</span>
-        </div>
+        <div class="note">Word, Excel and PowerPoint conversion uses LibreOffice on the local machine. <span class="cap">📦 pdf2docx</span> <span class="cap">📄 PyMuPDF</span></div>
       </div>
     </section>
   </div>
-
   <script>
-    // ========== ALL LOGIC UNCHANGED ==========
+    // (Same JavaScript as before – unchanged)
     let conversion = 'word-to-pdf', selectedFiles = [];
     const $ = id => document.getElementById(id);
     const specs = {
@@ -359,32 +280,19 @@
       'pdf-to-images': { title: 'Upload a PDF', hint: 'One PDF • pages are exported as PNG images (ZIP archive)', accept: '.pdf', multiple: false, button: 'Convert to Images' },
       'merge-pdf': { title: 'Upload PDFs to merge', hint: 'Select two or more PDF files', accept: '.pdf', multiple: true, button: 'Merge PDFs' }
     };
-
-    function setStatus(text, type = '') {
-      const s = $('status');
-      s.textContent = text;
-      s.className = 'status show ' + type;
-    }
-
+    function setStatus(text, type = '') { const s = $('status'); s.textContent = text; s.className = 'status show ' + type; }
     function renderFiles() {
       const list = $('fileList');
       list.innerHTML = '';
       selectedFiles.forEach(f => {
         const div = document.createElement('div');
         div.className = 'file-item';
-        div.innerHTML = `
-          <span class="name">${escapeHtml(f.name)}</span>
-          <span class="size">${(f.size / 1024 / 1024).toFixed(2)} MB</span>
-        `;
+        div.innerHTML = `<span class="name">${escapeHtml(f.name)}</span><span class="size">${(f.size / 1024 / 1024).toFixed(2)} MB</span>`;
         list.appendChild(div);
       });
       $('convertBtn').disabled = selectedFiles.length === 0;
     }
-
-    function escapeHtml(s) {
-      return s.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-    }
-
+    function escapeHtml(s) { return s.replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
     function configure() {
       const s = specs[conversion];
       $('dropTitle').textContent = s.title;
@@ -396,8 +304,6 @@
       renderFiles();
       setStatus('');
     }
-
-    // Tab switching
     document.querySelectorAll('.tab').forEach(b => {
       b.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
@@ -406,52 +312,24 @@
         configure();
       });
     });
-
-    // File input
-    $('files').addEventListener('change', e => {
-      selectedFiles = [...e.target.files];
-      renderFiles();
-    });
-
-    // Drag & drop
+    $('files').addEventListener('change', e => { selectedFiles = [...e.target.files]; renderFiles(); });
     const drop = $('drop');
-    drop.addEventListener('dragover', e => {
-      e.preventDefault();
-      drop.classList.add('drag-over');
-    });
-    drop.addEventListener('dragleave', () => {
-      drop.classList.remove('drag-over');
-    });
-    drop.addEventListener('drop', e => {
-      e.preventDefault();
-      drop.classList.remove('drag-over');
-      selectedFiles = [...e.dataTransfer.files];
-      renderFiles();
-    });
-
-    // Convert button
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+    drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('drag-over'); selectedFiles = [...e.dataTransfer.files]; renderFiles(); });
     $('convertBtn').addEventListener('click', async () => {
       const s = specs[conversion];
       if (!selectedFiles.length) return;
-      if (conversion === 'merge-pdf' && selectedFiles.length < 2) {
-        setStatus('Select at least two PDFs.', 'error');
-        return;
-      }
+      if (conversion === 'merge-pdf' && selectedFiles.length < 2) { setStatus('Select at least two PDFs.', 'error'); return; }
       const form = new FormData();
       form.append('conversion', conversion);
       selectedFiles.forEach(f => form.append('files', f));
-
       const btn = $('convertBtn');
       btn.disabled = true;
       setStatus('Converting…');
-
       try {
         const res = await fetch('/api/convert', { method: 'POST', body: form });
-        if (!res.ok) {
-          let msg = 'Conversion failed.';
-          try { msg = (await res.json()).error || msg; } catch {}
-          throw new Error(msg);
-        }
+        if (!res.ok) { let msg = 'Conversion failed.'; try { msg = (await res.json()).error || msg; } catch {} throw new Error(msg); }
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -465,15 +343,8 @@
         a.click();
         URL.revokeObjectURL(url);
         setStatus('Conversion completed. Download started.', 'ok');
-      } catch (err) {
-        setStatus(err.message, 'error');
-      } finally {
-        btn.disabled = false;
-        renderFiles();
-      }
+      } catch (err) { setStatus(err.message, 'error'); } finally { btn.disabled = false; renderFiles(); }
     });
-
-    // Initial setup
     configure();
   </script>
 </body>

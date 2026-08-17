@@ -6,3 +6,5 @@ Pillow>=9.0.0
 gunicorn>=21.0.0
 Werkzeug>=2.0.0
 Jinja2>=3.0.0
+openai>=1.0.0
+python-dotenv>=1.0.0
