@@ -209,7 +209,7 @@ def insert_text(page, rect, text, font_size, color, fontname, bold=False, italic
     line_height = font_size * 1.2
 
     # Shift x by 6px to the right, y by 0.8*font_size
-    x = rect.x0 + 6
+    x = rect.x0 + 8
     y = rect.y0 + font_size * 0.8
 
     for line in lines:
