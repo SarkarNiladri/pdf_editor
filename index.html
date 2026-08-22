@@ -19,7 +19,6 @@
       margin: 0;
       padding: 0;
     }
-
     .app-tabs {
       height: 56px;
       display: flex;
@@ -61,12 +60,8 @@
       cursor: pointer;
       color: #0f172a;
     }
-    @media (max-width: 768px) {
-      .sidebar-toggle { display: block; }
-    }
-
+    @media (max-width: 768px) { .sidebar-toggle { display: block; } }
     .app-view { display: flex; height: calc(100vh - 56px); position: relative; }
-
     .sidebar {
       width: 320px;
       min-width: 320px;
@@ -115,7 +110,6 @@
       }
       .sidebar-backdrop.active { display: block; }
     }
-
     .sidebar-title {
       display: flex;
       align-items: center;
@@ -125,7 +119,6 @@
       letter-spacing: -0.3px;
     }
     .sidebar-title span { background: #eef2ff; color: #4f46e5; font-size: 12px; padding: 2px 10px; border-radius: 999px; font-weight: 600; }
-
     .upload-zone {
       border: 2px dashed #cbd5e1;
       border-radius: 12px;
@@ -142,13 +135,11 @@
     .upload-zone p { font-size: 14px; font-weight: 500; color: #334155; }
     .upload-zone .hint { font-size: 12px; color: #94a3b8; margin-top: 4px; }
     .upload-zone input { display: none; }
-
     .info-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.6; }
     .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; margin-top: 6px; }
     .stat-item { display: flex; justify-content: space-between; font-size: 13px; }
     .stat-item .label { color: #64748b; }
     .stat-item .value { font-weight: 600; color: #0f172a; }
-
     .tool-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-top: 4px; }
     .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     .btn {
@@ -180,10 +171,8 @@
     .btn-ghost { background: transparent; border-color: transparent; }
     .btn-ghost:hover { background: #f1f5f9; border-color: #e2e8f0; }
     .btn:disabled { opacity: 0.5; pointer-events: none; }
-
     .selection-info { font-size: 13px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; color: #475569; min-height: 42px; display: flex; align-items: center; }
     .status-bar { font-size: 13px; color: #64748b; min-height: 22px; }
-
     .main {
       flex: 1;
       display: flex;
@@ -207,7 +196,6 @@
     .toolbar input[type="number"] { width: 48px; padding: 4px 6px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; text-align: center; font-family: inherit; }
     .toolbar input[type="number"]:focus { outline: 2px solid #818cf8; border-color: transparent; }
     .zoom-label { font-size: 13px; font-weight: 500; color: #475569; min-width: 48px; text-align: center; }
-
     .viewer-wrap {
       flex: 1;
       overflow: auto;
@@ -220,7 +208,6 @@
       background-size: 40px 40px;
       touch-action: pan-x pan-y;
     }
-
     .page-container {
       position: relative;
       background: #ffffff;
@@ -237,7 +224,6 @@
       pointer-events: auto;
       touch-action: none;
     }
-
     .empty-state {
       display: flex;
       flex-direction: column;
@@ -249,7 +235,6 @@
     }
     .empty-state .icon { font-size: 56px; }
     .empty-state p { font-size: 18px; font-weight: 500; }
-
     .object {
       position: absolute;
       pointer-events: none;
@@ -262,7 +247,6 @@
       touch-action: none;
     }
     .object.selected { border: 2px solid #4f46e5; }
-
     .resize-handle {
       position: absolute;
       width: 20px;
@@ -283,7 +267,6 @@
     .resize-handle.s { left: 50%; bottom: -10px; transform: translateX(-50%); cursor: ns-resize; }
     .resize-handle.sw { left: -10px; bottom: -10px; cursor: nesw-resize; }
     .resize-handle.w { left: -10px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
-
     .modal {
       display: none;
       position: fixed;
@@ -343,12 +326,10 @@
       flex-wrap: wrap;
     }
     .modal-actions .btn-danger { margin-right: auto; }
-
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
     @media (max-width: 768px) {
       .app-tabs { padding: 0 8px; }
       .app-tab { font-size: 13px; padding: 6px 12px; }
@@ -371,7 +352,6 @@
       .sidebar-title { font-size: 18px; }
       .stat-grid { grid-template-columns: 1fr; }
     }
-
     .converter-view {
       display: none;
       width: 100%;
@@ -400,7 +380,6 @@
       <aside class="sidebar" id="sidebar">
         <button class="sidebar-close" id="sidebarClose">✕</button>
         <div class="sidebar-title">📄 PDF Editor <span>v2</span></div>
-
         <div class="upload-zone" id="uploadArea">
           <span class="icon">📤</span>
           <p>Drop PDF here or click to browse</p>
@@ -434,17 +413,11 @@
             <button class="btn btn-ghost" id="clearBtn">🧹 Clear All</button>
           </div>
 
-          <!-- AI Tools Section -->
           <div class="tool-section-title">🤖 AI Tools</div>
-          <button class="btn btn-primary" id="summarizeBtn" style="width:100%; justify-content:center;">
-            📄 Summarize Document
-          </button>
+          <button class="btn btn-primary" id="summarizeBtn" style="width:100%; justify-content:center;">📄 Summarize Document</button>
 
-          <!-- ATS Checker -->
           <div class="tool-section-title">📄 Resume Tools</div>
-          <button class="btn btn-primary" id="atsCheckBtn" style="width:100%; justify-content:center;">
-            🧠 ATS Compatibility Check
-          </button>
+          <button class="btn btn-primary" id="atsCheckBtn" style="width:100%; justify-content:center;">🧠 ATS Compatibility Check</button>
 
           <div class="tool-section-title">🔍 View</div>
           <div class="tool-grid">
@@ -552,7 +525,6 @@
     </div>
   </div>
 
-  <!-- Summary Modal -->
   <div class="modal" id="summaryModal">
     <div class="modal-dialog">
       <h2>🤖 AI Document Summary</h2>
@@ -563,13 +535,10 @@
     </div>
   </div>
 
-  <!-- ATS Check Modal -->
   <div class="modal" id="atsModal">
     <div class="modal-dialog">
       <h2>🧠 ATS Compatibility Check</h2>
-      <p style="color:#64748b; font-size:14px; margin-bottom:16px;">
-        Upload your resume (PDF or DOCX) to check its ATS-friendliness.
-      </p>
+      <p style="color:#64748b; font-size:14px; margin-bottom:16px;">Upload your resume (PDF or DOCX) to check its ATS-friendliness.</p>
       <div class="upload-zone" id="atsUploadZone" style="min-height:120px; padding:16px; margin-bottom:16px;">
         <span class="icon">📤</span>
         <p style="font-weight:500;">Drop resume here or click to browse</p>
@@ -597,8 +566,7 @@
 
   <script>
     // ===================== FULL JAVASCRIPT =====================
-    // (All existing editor logic + ATS integration)
-    // I'm including the full script from the previous version, plus the ATS event listeners.
+    // All functionality from the previous working version, with the corrected fitTextRect.
 
     const editorTab = document.getElementById('editorTab');
     const converterTab = document.getElementById('converterTab');
@@ -704,34 +672,22 @@
 
     function commit(before) {
       const after = snapshot();
-      if (before !== after) { history.push(before);
-        future = []; }
+      if (before !== after) { history.push(before); future = []; }
       updateStats();
     }
 
-    async function applyHistory(s) { restoreSnapshot(s);
-      selected = null;
-      await refreshPreview('Updating preview…'); }
-
-    async function undo() { if (!history.length) return;
-      future.push(snapshot());
-      await applyHistory(history.pop()); }
-
-    async function redo() { if (!future.length) return;
-      history.push(snapshot());
-      await applyHistory(future.pop()); }
+    async function applyHistory(s) { restoreSnapshot(s); selected = null; await refreshPreview('Updating preview…'); }
+    async function undo() { if (!history.length) return; future.push(snapshot()); await applyHistory(history.pop()); }
+    async function redo() { if (!future.length) return; history.push(snapshot()); await applyHistory(future.pop()); }
 
     function setStatus(t) { $('status').textContent = t || ''; }
 
     function uploadHandlers() {
       uploadArea.onclick = () => fileInput.click();
       fileInput.onchange = e => e.target.files[0] && loadPDF(e.target.files[0]);
-      uploadArea.ondragover = e => { e.preventDefault();
-        uploadArea.classList.add('drag-over'); };
+      uploadArea.ondragover = e => { e.preventDefault(); uploadArea.classList.add('drag-over'); };
       uploadArea.ondragleave = () => uploadArea.classList.remove('drag-over');
-      uploadArea.ondrop = e => { e.preventDefault();
-        uploadArea.classList.remove('drag-over');
-        e.dataTransfer.files[0] && loadPDF(e.dataTransfer.files[0]); };
+      uploadArea.ondrop = e => { e.preventDefault(); uploadArea.classList.remove('drag-over'); e.dataTransfer.files[0] && loadPDF(e.dataTransfer.files[0]); };
     }
 
     async function loadPDF(file) {
@@ -760,8 +716,7 @@
         await renderCurrentPage();
         uploadArea.style.display = 'none';
         closeSidebar();
-      } catch (e) { alert(e.message);
-        setStatus(e.message); }
+      } catch (e) { alert(e.message); setStatus(e.message); }
     }
 
     async function renderServerPage(token) {
@@ -781,9 +736,7 @@
       img.style.display = 'block';
       img.style.width = '100%';
       img.style.height = '100%';
-      await new Promise((resolve, reject) => { img.onload = resolve;
-        img.onerror = () => reject(new Error('Could not display rendered PDF page.'));
-        img.src = url; });
+      await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = () => reject(new Error('Could not display rendered PDF page.')); img.src = url; });
       if (token !== renderToken) { URL.revokeObjectURL(url); return; }
       if (pageImageUrl) URL.revokeObjectURL(pageImageUrl);
       pageImageUrl = url;
@@ -799,8 +752,7 @@
       } else {
         viewer.replaceChildren(img, overlay);
       }
-      const w = pages[currentPage - 1].width * renderScale,
-        h = pages[currentPage - 1].height * renderScale;
+      const w = pages[currentPage - 1].width * renderScale, h = pages[currentPage - 1].height * renderScale;
       viewer.style.width = w + 'px';
       viewer.style.height = h + 'px';
       overlay.style.width = w + 'px';
@@ -836,9 +788,7 @@
     async function renderCurrentPage() { return requestRender(); }
 
     function getBaseItem(id) { return pages[currentPage - 1]?.items.find(x => x.id === id); }
-
     function getState(item, isAdded) { return isAdded ? item : edited[item.id]; }
-
     function targetRect(item, state) { return state?.rect || { x0: item.x0, y0: item.y0, x1: item.x1, y1: item.y1 }; }
 
     function drawObjects() {
@@ -892,8 +842,7 @@
       r.style.zIndex = isAdded ? String(1000 + (Number(item.order) || 0)) : '1';
       applyRectStyle(r, target);
       r.textContent = '';
-      if (selected === item.id) { r.classList.add('selected');
-        addResizeHandles(r, item, isAdded); }
+      if (selected === item.id) { r.classList.add('selected'); addResizeHandles(r, item, isAdded); }
       overlay.appendChild(r);
     }
 
@@ -904,9 +853,7 @@
         h.className = 'resize-handle ' + dir;
         h.dataset.direction = dir;
         h.title = 'Resize';
-        h.addEventListener('pointerdown', e => { e.preventDefault();
-          e.stopPropagation();
-          startResize(e, item, isAdded, parent, dir); }, { capture: true });
+        h.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); startResize(e, item, isAdded, parent, dir); }, { capture: true });
         parent.appendChild(h);
       }
     }
@@ -919,17 +866,13 @@
     }
 
     function shapeContains(shape, x, y) {
-      const x0 = Math.min(shape.rect.x0, shape.rect.x1),
-        x1 = Math.max(shape.rect.x0, shape.rect.x1);
-      const y0 = Math.min(shape.rect.y0, shape.rect.y1),
-        y1 = Math.max(shape.rect.y0, shape.rect.y1);
+      const x0 = Math.min(shape.rect.x0, shape.rect.x1), x1 = Math.max(shape.rect.x0, shape.rect.x1);
+      const y0 = Math.min(shape.rect.y0, shape.rect.y1), y1 = Math.max(shape.rect.y0, shape.rect.y1);
       if (x < x0 || x > x1 || y < y0 || y > y1) return false;
       if (shape.shape !== 'ellipse') return true;
-      const rx = (x1 - x0) / 2,
-        ry = (y1 - y0) / 2;
+      const rx = (x1 - x0) / 2, ry = (y1 - y0) / 2;
       if (rx <= 0 || ry <= 0) return false;
-      const cx = (x0 + x1) / 2,
-        cy = (y0 + y1) / 2;
+      const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
       return ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1;
     }
 
@@ -954,10 +897,8 @@
     }
 
     function containsRect(r, x, y) {
-      const x0 = Math.min(r.x0, r.x1),
-        x1 = Math.max(r.x0, r.x1);
-      const y0 = Math.min(r.y0, r.y1),
-        y1 = Math.max(r.y0, r.y1);
+      const x0 = Math.min(r.x0, r.x1), x1 = Math.max(r.x0, r.x1);
+      const y0 = Math.min(r.y0, r.y1), y1 = Math.max(r.y0, r.y1);
       return x >= x0 && x <= x1 && y >= y0 && y <= y1;
     }
 
@@ -967,11 +908,9 @@
       overlay.addEventListener('pointerdown', e => {
         if (e.button !== 0 || previewRunning) return;
         const pr = overlay.getBoundingClientRect();
-        const x = (e.clientX - pr.left) / renderScale,
-          y = (e.clientY - pr.top) / renderScale;
+        const x = (e.clientX - pr.left) / renderScale, y = (e.clientY - pr.top) / renderScale;
         const candidates = interactionCandidates(x, y);
-        if (!candidates.length) { selected = null;
-          refreshSelection(); return; }
+        if (!candidates.length) { selected = null; refreshSelection(); return; }
         const index = e.altKey ? Math.min(1, candidates.length - 1) : 0;
         const hit = candidates[index];
         selected = hit.item.id;
@@ -1023,8 +962,7 @@
       if (!element) return;
       e.preventDefault();
       e.stopPropagation();
-      let clientX = e.clientX,
-        clientY = e.clientY;
+      let clientX = e.clientX, clientY = e.clientY;
       if (e.touches && e.touches.length) {
         clientX = e.touches[0].clientX;
         clientY = e.touches[0].clientY;
@@ -1033,15 +971,12 @@
       refreshSelection();
       const state = item.shape ? item : (getState(item, isAdded) || item);
       dragState = {
-        type,
-        item,
-        isAdded,
+        type, item, isAdded,
         before: snapshot(),
         positionOnly: type === 'move' && !item.shape && !item.image,
         rect: { ...targetRect(item, state) },
         startFontSize: Number(state.fontSize ?? item.fontSize ?? 12),
-        sx: clientX,
-        sy: clientY,
+        sx: clientX, sy: clientY,
         direction,
         dirty: false,
         dragging: false,
@@ -1056,56 +991,53 @@
     }
 
     function startMove(e, item, isAdded, element) { beginPointer(e, item, isAdded, 'move', element); }
-
     function startResize(e, item, isAdded, element, direction = 'se') { beginPointer(e, item, isAdded, 'resize', element, direction); }
 
     function onDrag(e) {
       if (!dragState) return;
-      let clientX = e.clientX,
-        clientY = e.clientY;
+      let clientX = e.clientX, clientY = e.clientY;
       if (e.touches && e.touches.length) {
         clientX = e.touches[0].clientX;
         clientY = e.touches[0].clientY;
       }
-      const dx = (clientX - dragState.sx) / renderScale,
-        dy = (clientY - dragState.sy) / renderScale;
+      const dx = (clientX - dragState.sx) / renderScale, dy = (clientY - dragState.sy) / renderScale;
       if (!dragState.dragging && Math.hypot(clientX - dragState.sx, clientY - dragState.sy) < 4) return;
       if (!dragState.dragging) { dragState.dragging = true; if (!dragState.isAdded && !dragState.item.shape && !dragState.item.image) ensureExistingEdit(dragState.item); }
       let r = { ...dragState.rect };
       if (dragState.type === 'move') {
-        r.x0 += dx;
-        r.x1 += dx;
-        r.y0 += dy;
-        r.y1 += dy;
+        r.x0 += dx; r.x1 += dx; r.y0 += dy; r.y1 += dy;
       } else if (itemIsImage(dragState.item)) {
         const ratio = Math.max(0.0001, Number(dragState.item.aspectRatio) || ((dragState.rect.x1 - dragState.rect.x0) / Math.max(1, (dragState.rect.y1 - dragState.rect.y0))));
-        const startW = dragState.rect.x1 - dragState.rect.x0,
-          startH = dragState.rect.y1 - dragState.rect.y0;
+        const startW = dragState.rect.x1 - dragState.rect.x0, startH = dragState.rect.y1 - dragState.rect.y0;
         const dir = dragState.direction;
-        let x0 = dragState.rect.x0,
-          x1 = dragState.rect.x1,
-          y0 = dragState.rect.y0,
-          y1 = dragState.rect.y1;
+        let x0 = dragState.rect.x0, x1 = dragState.rect.x1, y0 = dragState.rect.y0, y1 = dragState.rect.y1;
         if (dir.includes('w')) x0 = Math.min(x1 - 8, x0 + dx);
         if (dir.includes('e')) x1 = Math.max(x0 + 8, x1 + dx);
         if (dir.includes('n')) y0 = Math.min(y1 - 8, y0 + dy);
         if (dir.includes('s')) y1 = Math.max(y0 + 8, y1 + dy);
-        let w = Math.max(8, x1 - x0),
-          h = Math.max(8, y1 - y0);
-        if (dir.length === 2) { const scale = Math.max(w / startW, h / startH);
+        let w = Math.max(8, x1 - x0), h = Math.max(8, y1 - y0);
+        if (dir.length === 2) {
+          const scale = Math.max(w / startW, h / startH);
           w = Math.max(8, startW * scale);
-          h = w / ratio; if (dir.includes('w')) x0 = dragState.rect.x1 - w;
-          else x1 = dragState.rect.x0 + w; if (dir.includes('n')) y0 = dragState.rect.y1 - h;
-          else y1 = dragState.rect.y0 + h; } else if (dir === 'e' || dir === 'w') { h = w / ratio; if (dir === 'w') y1 = y0 + h;
-          else y1 = y0 + h; } else { w = h * ratio; if (dir === 'n') x1 = x0 + w;
-          else x1 = x0 + w; }
+          h = w / ratio;
+          if (dir.includes('w')) x0 = dragState.rect.x1 - w;
+          else x1 = dragState.rect.x0 + w;
+          if (dir.includes('n')) y0 = dragState.rect.y1 - h;
+          else y1 = dragState.rect.y0 + h;
+        } else if (dir === 'e' || dir === 'w') {
+          h = w / ratio;
+          if (dir === 'w') y1 = y0 + h;
+          else y1 = y0 + h;
+        } else {
+          w = h * ratio;
+          if (dir === 'n') x1 = x0 + w;
+          else x1 = x0 + w;
+        }
         r = { x0, x1, y0, y1 };
       } else if (!dragState.item.shape && !dragState.item.image) {
-        const startW = Math.max(8, dragState.rect.x1 - dragState.rect.x0),
-          startH = Math.max(8, dragState.rect.y1 - dragState.rect.y0);
+        const startW = Math.max(8, dragState.rect.x1 - dragState.rect.x0), startH = Math.max(8, dragState.rect.y1 - dragState.rect.y0);
         const dir = dragState.direction;
-        let newW = startW,
-          newH = startH;
+        let newW = startW, newH = startH;
         if (dir.includes('w')) newW = Math.max(8, startW - dx);
         if (dir.includes('e')) newW = Math.max(8, startW + dx);
         if (dir.includes('n')) newH = Math.max(8, startH - dy);
@@ -1131,6 +1063,7 @@
       applyRectStyle(dragState.element, r);
     }
 
+    // ========== FIXED fitTextRect with padding ==========
     function fitTextRect(item, text, fontSize, forceFit = true) {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -1141,12 +1074,12 @@
       ctx.font = `${style}${weight} ${fontSize * renderScale}px ${fontName}`;
       const lines = String(text || '').split('\n');
       const widths = lines.map(line => ctx.measureText(line || ' ').width / renderScale);
-      const measuredWidth = Math.max(8, ...widths) + 3;
-      const lineHeight = Math.max(fontSize * 1.18, 8);
-      const measuredHeight = Math.max(lineHeight, lines.length * lineHeight + 2);
+      const measuredWidth = Math.max(8, ...widths) + 4; // 4px padding
+      const lineHeight = Math.max(fontSize * 1.2, 8);
+      const totalTextHeight = (lines.length - 1) * lineHeight + fontSize * 1.0;
+      const measuredHeight = Math.max(lineHeight, totalTextHeight) + 4; // 4px padding
       const page = pages[currentPage - 1];
-      const x0 = Number(item.rect.x0),
-        y0 = Number(item.rect.y0);
+      const x0 = Number(item.rect.x0), y0 = Number(item.rect.y0);
       const maxWidth = Math.max(8, (page?.width || item.rect.x1) - x0 - 2);
       const maxHeight = Math.max(8, (page?.height || item.rect.y1) - y0 - 2);
       if (item.singleLine && !text.includes('\n')) {
@@ -1160,7 +1093,7 @@
           }
         }
         item.rect.x1 = x0 + newWidth;
-        const newHeight = Math.max(Number(item.rect.y1) - y0, lineHeight);
+        const newHeight = Math.max(Number(item.rect.y1) - y0, measuredHeight);
         item.rect.y1 = y0 + Math.min(newHeight, maxHeight);
       } else {
         const currentHeight = Number(item.rect.y1) - y0;
@@ -1280,8 +1213,7 @@
       }
     }
 
-    function refreshSelection() { document.querySelectorAll('.object').forEach(x => x.classList.toggle('selected', x.dataset.id === selected));
-      updateSelectionInfo(); }
+    function refreshSelection() { document.querySelectorAll('.object').forEach(x => x.classList.toggle('selected', x.dataset.id === selected)); updateSelectionInfo(); }
 
     function updateSelectionInfo() {
       if (!selected) { $('selectionInfo').textContent = 'Nothing selected.'; return; }
@@ -1291,9 +1223,7 @@
       $('selectionInfo').textContent = a ? 'New text selected' : 'Existing PDF text selected';
     }
 
-    function setStyleToggle(id, on) { const b = $(id);
-      b.classList.toggle('style-active', !!on);
-      b.setAttribute('aria-pressed', !!on ? 'true' : 'false'); }
+    function setStyleToggle(id, on) { const b = $(id); b.classList.toggle('style-active', !!on); b.setAttribute('aria-pressed', !!on ? 'true' : 'false'); }
 
     function openEditor(item, isAdded) {
       selected = item.id;
@@ -1324,27 +1254,27 @@
     $('boldBtn').onclick = () => setStyleToggle('boldBtn', $('boldBtn').getAttribute('aria-pressed') !== 'true');
     $('italicBtn').onclick = () => setStyleToggle('italicBtn', $('italicBtn').getAttribute('aria-pressed') !== 'true');
 
-    function openShapeEditor(shape) { selected = shape.id;
-      $('shapeType').value = shape.shape || 'rect';
-      $('shapeFill').value = shape.fill || '#6366f1';
-      $('shapeModal').classList.add('open'); }
+    function openShapeEditor(shape) { selected = shape.id; $('shapeType').value = shape.shape || 'rect'; $('shapeFill').value = shape.fill || '#6366f1'; $('shapeModal').classList.add('open'); }
 
-    function addShape() { selected = null;
-      $('shapeType').value = 'rect';
-      $('shapeFill').value = '#6366f1';
-      $('shapeModal').classList.add('open'); }
+    function addShape() { selected = null; $('shapeType').value = 'rect'; $('shapeFill').value = '#6366f1'; $('shapeModal').classList.add('open'); }
     $('shapeCancel').onclick = () => $('shapeModal').classList.remove('open');
     $('shapeSave').onclick = async () => {
       const type = $('shapeType').value === 'ellipse' ? 'ellipse' : 'rect';
       const fill = $('shapeFill').value || '#6366f1';
-      if (selected && shapes.some(x => x.id === selected)) { const sh = shapes.find(x => x.id === selected); const unchanged = sh.shape === type && (sh.fill || '').toLowerCase() === fill.toLowerCase();
-        $('shapeModal').classList.remove('open'); if (unchanged) { refreshSelection(); return; } const before = snapshot();
+      if (selected && shapes.some(x => x.id === selected)) {
+        const sh = shapes.find(x => x.id === selected);
+        const unchanged = sh.shape === type && (sh.fill || '').toLowerCase() === fill.toLowerCase();
+        $('shapeModal').classList.remove('open');
+        if (unchanged) { refreshSelection(); return; }
+        const before = snapshot();
         sh.shape = type;
         sh.fill = fill;
         sh.stroke = fill;
         sh.previewOnly = true;
         commit(before);
-        await refreshPreview('Updating shape…'); return; }
+        await refreshPreview('Updating shape…');
+        return;
+      }
       const before = snapshot();
       const id = uniqueId('shape_');
       const sh = { id, type: 'shape', shape: type, page: currentPage, fill, stroke: fill, order: nextAdditionOrder(), rect: { x0: 40, y0: 40, x1: 160, y1: 100 }, previewOnly: true };
@@ -1371,30 +1301,18 @@
       selected = null;
       $('imageModal').classList.add('open');
     }
-    $('imageCancel').onclick = () => { $('imageModal').classList.remove('open');
-      imagePending = null; };
+    $('imageCancel').onclick = () => { $('imageModal').classList.remove('open'); imagePending = null; };
     $('imageFile').onchange = async e => {
       const file = e.target.files?.[0];
       if (!file) { imagePending = null; return; }
       const allowed = ['image/png', 'image/jpeg', 'image/webp'];
-      if (!allowed.includes(file.type)) { alert('Please choose a PNG, JPG or WebP image.');
-        e.target.value = '';
-        imagePending = null; return; }
-      if (file.size > 10 * 1024 * 1024) { alert('Image must be 10 MB or smaller.');
-        e.target.value = '';
-        imagePending = null; return; }
+      if (!allowed.includes(file.type)) { alert('Please choose a PNG, JPG or WebP image.'); e.target.value = ''; imagePending = null; return; }
+      if (file.size > 10 * 1024 * 1024) { alert('Image must be 10 MB or smaller.'); e.target.value = ''; imagePending = null; return; }
       try {
-        const dataUrl = await new Promise((resolve, reject) => { const fr = new FileReader();
-          fr.onload = () => resolve(fr.result);
-          fr.onerror = () => reject(new Error('Could not read image.'));
-          fr.readAsDataURL(file); });
-        const dims = await new Promise((resolve, reject) => { const img = new Image();
-          img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight, img });
-          img.onerror = () => reject(new Error('Invalid or corrupt image.'));
-          img.src = dataUrl; });
+        const dataUrl = await new Promise((resolve, reject) => { const fr = new FileReader(); fr.onload = () => resolve(fr.result); fr.onerror = () => reject(new Error('Could not read image.')); fr.readAsDataURL(file); });
+        const dims = await new Promise((resolve, reject) => { const img = new Image(); img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight, img }); img.onerror = () => reject(new Error('Invalid or corrupt image.')); img.src = dataUrl; });
         if (!dims.width || !dims.height) throw new Error('Image has invalid dimensions.');
-        let normalizedData = dataUrl,
-          normalizedMime = file.type;
+        let normalizedData = dataUrl, normalizedMime = file.type;
         if (file.type === 'image/webp') {
           const c = document.createElement('canvas');
           c.width = dims.width;
@@ -1407,9 +1325,7 @@
         }
         imagePending = { dataUrl: normalizedData, name: file.name, mime: normalizedMime, width: dims.width, height: dims.height };
         $('imageInfo').textContent = `${file.name} — ${dims.width} × ${dims.height}px${file.type === 'image/webp' ? ' (converted to PNG for PDF export)' : ''}`;
-      } catch (err) { alert(err.message);
-        e.target.value = '';
-        imagePending = null; }
+      } catch (err) { alert(err.message); e.target.value = ''; imagePending = null; }
     };
     $('imageSave').onclick = async () => {
       const existing = selected && images.find(x => x.id === selected);
@@ -1434,12 +1350,10 @@
       if (!imagePending) { alert('Choose a PNG, JPG or WebP image first.'); return; }
       const before = snapshot();
       const ratio = imagePending.width / imagePending.height;
-      const maxW = 180,
-        maxH = 140;
+      const maxW = 180, maxH = 140;
       let w = Math.min(maxW, imagePending.width);
       let h = w / ratio;
-      if (h > maxH) { h = maxH;
-        w = h * ratio; }
+      if (h > maxH) { h = maxH; w = h * ratio; }
       const id = uniqueId('image_');
       const im = { id, type: 'image', image: true, page: currentPage, order: nextAdditionOrder(), name: imagePending.name, mime: imagePending.mime, data: imagePending.dataUrl, sourceWidth: imagePending.width, sourceHeight: imagePending.height, aspectRatio: ratio, rect: { x0: 40, y0: 40, x1: 40 + w, y1: 40 + h } };
       images.push(im);
@@ -1452,9 +1366,24 @@
       await refreshPreview('Adding image…');
     };
 
+    // ========== FIXED addText() ==========
     function addText() {
       const id = uniqueId('new_');
-      const item = { id, type: 'add', page: currentPage, order: nextAdditionOrder(), text: 'New text', fontSize: 14, color: '#000000', font: 'Arial', bold: false, italic: false, singleLine: true, rect: { x0: 40, y0: 40, x1: 180, y1: 60 } };
+      const item = {
+        id,
+        type: 'add',
+        page: currentPage,
+        order: nextAdditionOrder(),
+        text: 'New text',
+        fontSize: 14,
+        color: '#000000',
+        font: 'Arial',
+        bold: false,
+        italic: false,
+        singleLine: true,
+        rect: { x0: 40, y0: 40, x1: 220, y1: 70 }
+      };
+      fitTextRect(item, item.text, item.fontSize, true);
       added.push(item);
       selected = id;
       drawObjects();
@@ -1465,16 +1394,12 @@
       openEditor(item, true);
     }
 
-    $('modalCancel').onclick = () => { if (modalMode === 'add' && selected) { const exists = added.some(x => x.id === selected); if (exists) { added = added.filter(x => x.id !== selected);
-          selected = null; } } $('modal').classList.remove('open');
-      drawObjects();
-      updateStats(); };
+    $('modalCancel').onclick = () => { if (modalMode === 'add' && selected) { const exists = added.some(x => x.id === selected); if (exists) { added = added.filter(x => x.id !== selected); selected = null; } } $('modal').classList.remove('open'); drawObjects(); updateStats(); };
 
     $('modalSave').onclick = async () => {
       const text = $('editText').value;
       const parsedSize = parseFloat($('fontSize').value);
-      if (!Number.isFinite(parsedSize) || parsedSize < 1 || parsedSize > 200) { alert('Font size must be between 1 and 200.');
-        $('fontSize').focus(); return; }
+      if (!Number.isFinite(parsedSize) || parsedSize < 1 || parsedSize > 200) { alert('Font size must be between 1 and 200.'); $('fontSize').focus(); return; }
       const size = parsedSize;
       const color = $('color').value;
       const font = $('fontFamily').value;
@@ -1529,14 +1454,10 @@
 
     $('modalDelete').onclick = async () => {
       const before = snapshot();
-      if (images.some(x => x.id === selected)) { images = images.filter(x => x.id !== selected);
-        selected = null;
-        $('imageModal').classList.remove('open'); } else if (shapes.some(x => x.id === selected)) { shapes = shapes.filter(x => x.id !== selected);
-        selected = null;
-        $('shapeModal').classList.remove('open'); } else if (modalMode === 'add') added = added.filter(x => x.id !== selected);
-      else { const item = getBaseItem(selected); if (item) { const ch = ensureExistingEdit(item);
-          ch.deleted = true;
-          ch.text = ''; } }
+      if (images.some(x => x.id === selected)) { images = images.filter(x => x.id !== selected); selected = null; $('imageModal').classList.remove('open'); }
+      else if (shapes.some(x => x.id === selected)) { shapes = shapes.filter(x => x.id !== selected); selected = null; $('shapeModal').classList.remove('open'); }
+      else if (modalMode === 'add') added = added.filter(x => x.id !== selected);
+      else { const item = getBaseItem(selected); if (item) { const ch = ensureExistingEdit(item); ch.deleted = true; ch.text = ''; } }
       selected = null;
       $('modal').classList.remove('open');
       commit(before);
@@ -1546,44 +1467,22 @@
     $('addTextBtn').onclick = addText;
     $('addShapeBtn').onclick = addShape;
     $('addImageBtn').onclick = addImage;
-    $('editSelectedBtn').onclick = () => { if (!selected) return alert('Select an object first.'); const sh = shapes.find(x => x.id === selected),
-        im = images.find(x => x.id === selected),
-        a = added.find(x => x.id === selected),
-        i = getBaseItem(selected); if (sh) openShapeEditor(sh);
-      else if (im) openImageEditor(im);
-      else if (a) openEditor(a, true);
-      else if (i) openEditor(i, false); };
+    $('editSelectedBtn').onclick = () => { if (!selected) return alert('Select an object first.'); const sh = shapes.find(x => x.id === selected), im = images.find(x => x.id === selected), a = added.find(x => x.id === selected), i = getBaseItem(selected); if (sh) openShapeEditor(sh); else if (im) openImageEditor(im); else if (a) openEditor(a, true); else if (i) openEditor(i, false); };
     $('deleteSelectedBtn').onclick = () => $('modalDelete').click();
     $('undoBtn').onclick = undo;
     $('redoBtn').onclick = redo;
-    $('clearBtn').onclick = async () => { if (!confirm('Clear all edits and added text?')) return; const before = snapshot();
-      edited = {};
-      added = [];
-      shapes = [];
-      images = [];
-      selected = null;
-      additionOrder = 1;
-      commit(before);
-      refreshPreview('Clearing edits…'); };
+    $('clearBtn').onclick = async () => { if (!confirm('Clear all edits and added text?')) return; const before = snapshot(); edited = {}; added = []; shapes = []; images = []; selected = null; additionOrder = 1; commit(before); refreshPreview('Clearing edits…'); };
 
-    $('zoomIn').onclick = async () => { renderScale = Math.min(3, renderScale + .25);
-      await renderCurrentPage(); };
-    $('zoomOut').onclick = async () => { renderScale = Math.max(.75, renderScale - .25);
-      await renderCurrentPage(); };
-    $('prevBtn').onclick = async () => { if (currentPage > 1) { currentPage--;
-        selected = null;
-        await renderCurrentPage(); } };
-    $('nextBtn').onclick = async () => { if (currentPage < pages.length) { currentPage++;
-        selected = null;
-        await renderCurrentPage(); } };
-    $('pageInput').onchange = async () => { const n = Number($('pageInput').value); if (n >= 1 && n <= pages.length) { currentPage = n;
-        selected = null;
-        await renderCurrentPage(); } };
+    $('zoomIn').onclick = async () => { renderScale = Math.min(3, renderScale + .25); await renderCurrentPage(); };
+    $('zoomOut').onclick = async () => { renderScale = Math.max(.75, renderScale - .25); await renderCurrentPage(); };
+    $('prevBtn').onclick = async () => { if (currentPage > 1) { currentPage--; selected = null; await renderCurrentPage(); } };
+    $('nextBtn').onclick = async () => { if (currentPage < pages.length) { currentPage++; selected = null; await renderCurrentPage(); } };
+    $('pageInput').onchange = async () => { const n = Number($('pageInput').value); if (n >= 1 && n <= pages.length) { currentPage = n; selected = null; await renderCurrentPage(); } };
 
     document.addEventListener('keydown', async e => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault();
-        e.shiftKey ? redo() : undo(); } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault();
-        redo(); } else if (e.key === 'Delete' && !$('modal').classList.contains('open') && selected) { await $('deleteSelectedBtn').click(); }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+      else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); }
+      else if (e.key === 'Delete' && !$('modal').classList.contains('open') && selected) { await $('deleteSelectedBtn').click(); }
     });
 
     $('downloadBtn').onclick = async () => {
@@ -1608,8 +1507,7 @@
         a.click();
         a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
-      } catch (e) { alert(e.message); } finally { btn.disabled = false;
-        btn.textContent = '⬇️ Download Modified PDF'; }
+      } catch (e) { alert(e.message); } finally { btn.disabled = false; btn.textContent = '⬇️ Download Modified PDF'; }
     };
 
     function updateStats() {
@@ -1641,23 +1539,17 @@
       btn.disabled = true;
       btn.textContent = '⏳ Generating summary…';
       summaryContent.textContent = '';
-
       try {
         const res = await fetch('/api/summarize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ pdf: pdfData })
         });
-
         if (!res.ok) {
           let errMsg = 'Summarization failed.';
-          try {
-            const errData = await res.json();
-            errMsg = errData.error || errMsg;
-          } catch (_) {}
+          try { const errData = await res.json(); errMsg = errData.error || errMsg; } catch (_) {}
           throw new Error(errMsg);
         }
-
         const data = await res.json();
         summaryContent.textContent = data.summary || 'No summary generated.';
         summaryModal.classList.add('open');
@@ -1669,13 +1561,8 @@
       }
     });
 
-    // Close summary modal
-    summaryCloseBtn.addEventListener('click', () => {
-      summaryModal.classList.remove('open');
-    });
-    summaryModal.addEventListener('click', (e) => {
-      if (e.target === summaryModal) summaryModal.classList.remove('open');
-    });
+    summaryCloseBtn.addEventListener('click', () => { summaryModal.classList.remove('open'); });
+    summaryModal.addEventListener('click', (e) => { if (e.target === summaryModal) summaryModal.classList.remove('open'); });
 
     // ==================== ATS COMPATIBILITY CHECK ====================
     const atsCheckBtn = document.getElementById('atsCheckBtn');
@@ -1708,17 +1595,11 @@
       atsUploadZone.querySelector('p').textContent = 'Drop resume here or click to browse';
     });
 
-    atsCloseBtn.addEventListener('click', () => {
-      atsModal.classList.remove('open');
-    });
-    atsModal.addEventListener('click', (e) => {
-      if (e.target === atsModal) atsModal.classList.remove('open');
-    });
+    atsCloseBtn.addEventListener('click', () => { atsModal.classList.remove('open'); });
+    atsModal.addEventListener('click', (e) => { if (e.target === atsModal) atsModal.classList.remove('open'); });
 
-    // Upload zone handlers
     atsUploadZone.addEventListener('click', () => atsFileInput.click());
-    atsUploadZone.addEventListener('dragover', (e) => { e.preventDefault();
-      atsUploadZone.classList.add('drag-over'); });
+    atsUploadZone.addEventListener('dragover', (e) => { e.preventDefault(); atsUploadZone.classList.add('drag-over'); });
     atsUploadZone.addEventListener('dragleave', () => atsUploadZone.classList.remove('drag-over'));
     atsUploadZone.addEventListener('drop', (e) => {
       e.preventDefault();
@@ -1744,15 +1625,11 @@
     async function runAtsCheck(file) {
       const formData = new FormData();
       formData.append('file', file);
-
       try {
         const res = await fetch('/api/ats-check', { method: 'POST', body: formData });
         if (!res.ok) {
           let errMsg = 'Analysis failed.';
-          try {
-            const errData = await res.json();
-            errMsg = errData.error || errMsg;
-          } catch (_) {}
+          try { const errData = await res.json(); errMsg = errData.error || errMsg; } catch (_) {}
           throw new Error(errMsg);
         }
         const data = await res.json();
@@ -1771,7 +1648,6 @@
       atsTotalScore.textContent = total + '%';
       atsScoreBar.style.width = total + '%';
 
-      // Breakdown
       atsBreakdown.innerHTML = '';
       const breakdown = data.breakdown;
       for (const [key, val] of Object.entries(breakdown)) {
@@ -1793,7 +1669,6 @@
         atsBreakdown.appendChild(div);
       }
 
-      // Stats
       atsWordCount.textContent = `📝 ${data.word_count} words`;
       atsSectionsFound.textContent = `📑 ${data.sections_found} sections found`;
       atsSkillsDetected.textContent = `🛠️ ${data.skills_detected} skills detected`;

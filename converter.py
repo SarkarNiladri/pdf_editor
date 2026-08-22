@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pymupdf
 from flask import jsonify, send_file, after_this_request
+from PIL import Image
 
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATE_DIR = BASE_DIR / "templates"
@@ -161,14 +162,11 @@ except ImportError:
     from docx.shared import Pt as DocPt, RGBColor
     from docx.enum.text import WD_ALIGN_PARAGRAPH
 
-    # (include all helper functions from fallback)
-    # For brevity, we assume the fallback code is present.
-    # In the actual file, you would include the full fallback implementation.
-    # But we have it earlier in the conversation; we'll just include a placeholder.
+    # (Full fallback code omitted for brevity – include your existing fallback here)
+    # For production, you should copy the full fallback implementation from your previous version.
+    # I'll keep a placeholder that raises an error.
     def pdf_to_word(src: Path) -> Path:
-        # Placeholder fallback – should be replaced with the full custom converter
-        raise NotImplementedError("pdf2docx is not installed and fallback is not fully implemented in this snippet. Please install pdf2docx or implement the fallback.")
-        # In practice, you would copy the full fallback code from the earlier version.
+        raise NotImplementedError("pdf2docx is not installed. Please install it or implement the fallback converter.")
 
 
 def pdf_to_images(src: Path):
@@ -210,9 +208,28 @@ def merge_pdfs(files):
         result.close()
 
 
-# ----- Conversion router -----
+# ---------- Image conversion ----------
+def convert_image(src: Path, target_format: str) -> Path:
+    """Convert an image to the target format using Pillow."""
+    try:
+        img = Image.open(src)
+    except Exception as e:
+        raise ValueError(f"Invalid image file: {e}")
 
-def _run_conversion(conversion: str, files: list) -> tuple:
+    # Convert to RGB if target is JPEG and image has alpha or is indexed
+    if target_format.lower() in ('jpeg', 'jpg') and img.mode in ('RGBA', 'P', 'LA'):
+        img = img.convert('RGB')
+
+    output = OUTPUT_DIR / f"{uuid.uuid4().hex}.{target_format.lower()}"
+    save_format = target_format.upper()
+    if save_format == 'JPG':
+        save_format = 'JPEG'
+    img.save(output, format=save_format)
+    return output
+
+
+# ----- Conversion router -----
+def _run_conversion(conversion: str, files: list, target_format: str = None) -> tuple:
     if conversion == "word-to-pdf":
         if len(files) != 1 or files[0].suffix.lower() not in {".doc", ".docx", ".odt"}:
             return (jsonify({"error": "Word to PDF requires one DOC, DOCX or ODT file."}), 400)
@@ -264,5 +281,19 @@ def _run_conversion(conversion: str, files: list) -> tuple:
             return (jsonify({"error": "Merge PDFs requires at least two PDF files."}), 400)
         output = merge_pdfs(files)
         return (send_file(output, as_attachment=True, download_name="merged.pdf"), 200)
+
+    if conversion == "image-to-image":
+        if not target_format:
+            return (jsonify({"error": "Target format not specified."}), 400)
+        if len(files) != 1:
+            return (jsonify({"error": "Please upload exactly one image."}), 400)
+        try:
+            output = convert_image(files[0], target_format)
+        except Exception as e:
+            return (jsonify({"error": f"Image conversion failed: {str(e)}"}), 400)
+        ext = target_format.lower()
+        if ext == 'jpeg':
+            ext = 'jpg'
+        return (send_file(output, as_attachment=True, download_name=f"converted.{ext}"), 200)
 
     return (jsonify({"error": f"Unsupported conversion: {conversion}"}), 400)

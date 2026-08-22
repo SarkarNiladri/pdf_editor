@@ -198,7 +198,6 @@ def get_pdf_font_name(family, bold=False, italic=False):
         return base
 
 def insert_text(page, rect, text, font_size, color, fontname, bold=False, italic=False):
-    """Insert multi‑line text without any automatic wrapping."""
     if not text or not text.strip():
         return True
 
@@ -208,11 +207,14 @@ def insert_text(page, rect, text, font_size, color, fontname, bold=False, italic
 
     pdf_font = get_pdf_font_name(fontname, bold, italic)
     line_height = font_size * 1.2
-    y = rect.y0
+
+    # Shift x by 6px to the right, y by 0.8*font_size
+    x = rect.x0 + 6
+    y = rect.y0 + font_size * 0.8
 
     for line in lines:
         page.insert_text(
-            (rect.x0, y),
+            (x, y),
             line,
             fontsize=font_size,
             fontname=pdf_font,
@@ -220,9 +222,6 @@ def insert_text(page, rect, text, font_size, color, fontname, bold=False, italic
             overlay=True
         )
         y += line_height
-        if y > rect.y1 + font_size:
-            break
-
     return True
 
 def decode_image_data(value):
@@ -390,7 +389,6 @@ def summarize_pdf():
     if not full_text.strip():
         return jsonify({'error': 'No text found in PDF. The document might be scanned or image-based.'}), 400
 
-    # Truncate to avoid token limits (~12,000 chars)
     max_chars = 12000
     if len(full_text) > max_chars:
         full_text = full_text[:max_chars] + "\n\n[Document truncated due to length...]"
@@ -429,7 +427,6 @@ def summarize_pdf():
 
 
 # ---------- ATS Compatibility Checker ----------
-# Lists of action verbs and skills (can be expanded)
 ACTION_VERBS = {
     "achieved", "managed", "led", "developed", "built", "created", "designed",
     "implemented", "improved", "increased", "decreased", "reduced", "solved",
@@ -451,10 +448,8 @@ TECH_SKILLS = {
 }
 
 def extract_text_from_file(file_storage):
-    """Extract text from PDF (using pdfplumber) or DOCX."""
     filename = file_storage.filename.lower()
     if filename.endswith('.pdf'):
-        # Use pdfplumber for better table/column handling
         with pdfplumber.open(file_storage) as pdf:
             text = ""
             for page in pdf.pages:
@@ -470,7 +465,6 @@ def extract_text_from_file(file_storage):
         raise ValueError("Unsupported file format. Please upload a PDF or DOCX.")
 
 def ats_check(file_storage):
-    """Run ATS compatibility analysis and return scores."""
     try:
         text = extract_text_from_file(file_storage)
     except Exception as e:
@@ -483,7 +477,6 @@ def ats_check(file_storage):
     words = text_lower.split()
     word_count = len(words)
 
-    # ---------- 1. Parseability (10%) ----------
     parseable_score = 10
     if word_count < 100:
         parseable_score = 0
@@ -494,7 +487,6 @@ def ats_check(file_storage):
     if total_chars > 0 and alpha_chars / total_chars < 0.4:
         parseable_score = max(0, parseable_score - 5)
 
-    # ---------- 2. Structure & Sections (20%) ----------
     section_keywords = {
         "summary": ["summary", "profile", "about me", "objective"],
         "education": ["education", "academic", "university", "college", "school", "degree"],
@@ -510,7 +502,6 @@ def ats_check(file_storage):
             sections_found += 1
     structure_score = min(20, sections_found * 3)
 
-    # ---------- 3. Formatting (15%) ----------
     formatting_score = 0
     bullet_lines = re.findall(r'^\s*[-*•\d]+\.?\s+', text, re.MULTILINE)
     if len(bullet_lines) >= 5:
@@ -523,7 +514,6 @@ def ats_check(file_storage):
         formatting_score += 2
     formatting_score = min(15, formatting_score)
 
-    # ---------- 4. Contact Information (10%) ----------
     contact_score = 0
     email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     if re.search(email_pattern, text):
@@ -535,7 +525,6 @@ def ats_check(file_storage):
         contact_score += 3
     contact_score = min(10, contact_score)
 
-    # ---------- 5. Experience Date Consistency (15%) ----------
     date_score = 0
     date_pattern = r'\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{4}\b|\b\d{1,2}/\d{1,2}/\d{4}\b|\b\d{4}\b'
     raw_dates = re.findall(date_pattern, text_lower, re.IGNORECASE)
@@ -557,7 +546,6 @@ def ats_check(file_storage):
         date_score = 5
     date_score = min(15, date_score)
 
-    # ---------- 6. Content Quality (15%) ----------
     quality_score = 0
     if word_count > 300:
         quality_score += 5
@@ -575,7 +563,6 @@ def ats_check(file_storage):
         quality_score += 2
     quality_score = min(15, quality_score)
 
-    # ---------- 7. Skill Coverage (15%) ----------
     skill_count = sum(1 for skill in TECH_SKILLS if skill in text_lower)
     if skill_count >= 10:
         skill_score = 15
@@ -586,8 +573,6 @@ def ats_check(file_storage):
     else:
         skill_score = 4
 
-    # ---------- ✅ CORRECTED TOTAL SCORE ----------
-    # Convert each score to percentage of its max, then apply weight
     total_score = (
         (parseable_score / 10) * 10 +
         (structure_score / 20) * 20 +
@@ -661,6 +646,8 @@ def converter_capabilities():
 def converter_convert():
     conversion = (request.form.get('conversion') or '').strip().lower()
     uploads = request.files.getlist('files')
+    target_format = request.form.get('target_format')  # For image conversion
+
     if not uploads:
         return jsonify({'error': 'Please select at least one file.'}), 400
 
@@ -681,7 +668,7 @@ def converter_convert():
             return jsonify({'error': 'No valid files were uploaded.'}), 400
 
         _cleanup_old_outputs()
-        resp, status = _run_conversion(conversion, files)
+        resp, status = _run_conversion(conversion, files, target_format=target_format)
         return resp, status
 
     except subprocess.TimeoutExpired:
