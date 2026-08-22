@@ -15,15 +15,12 @@ import openai
 import pdfplumber
 import dateparser
 
-# Load environment variables from .env
 load_dotenv()
-
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024  # 200 MB
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 
-# Import converter functions
 from converter import (
     find_libreoffice, office_to_pdf, images_to_pdf, pdf_to_word,
     pdf_to_images, merge_pdfs, safe_name, cleanup_images_dir,
@@ -32,7 +29,6 @@ from converter import (
 )
 
 
-# ---------- Routes ----------
 @app.route('/')
 def index():
     return send_file(PROJECT_ROOT / 'index.html', mimetype='text/html')
@@ -142,7 +138,7 @@ def extract():
     return jsonify({'pdf': base64.b64encode(data).decode('ascii'), 'pageCount': len(pages), 'pages': pages})
 
 
-# ---------- Render page endpoint ----------
+# ---------- Render page ----------
 @app.post('/api/render-page')
 def render_page():
     payload = request.get_json(force=True) or {}
@@ -208,7 +204,7 @@ def insert_text(page, rect, text, font_size, color, fontname, bold=False, italic
     pdf_font = get_pdf_font_name(fontname, bold, italic)
     line_height = font_size * 1.2
 
-    # Shift x by 6px to the right, y by 0.8*font_size
+    # Shift x by 8px to the right, y by 0.8*font_size (baseline alignment)
     x = rect.x0 + 8
     y = rect.y0 + font_size * 0.8
 
@@ -360,7 +356,7 @@ def edit():
         return jsonify({'error': f'{type(e).__name__}: {e}'}), 500
 
 
-# ---------- AI Summarization ----------
+# ---------- Summarization ----------
 def extract_all_text(pdf_bytes):
     doc = fitz.open(stream=pdf_bytes, filetype='pdf')
     text = ""
@@ -426,7 +422,7 @@ def summarize_pdf():
         return jsonify({'error': f'OpenAI API error: {str(e)}'}), 500
 
 
-# ---------- ATS Compatibility Checker ----------
+# ---------- ATS ----------
 ACTION_VERBS = {
     "achieved", "managed", "led", "developed", "built", "created", "designed",
     "implemented", "improved", "increased", "decreased", "reduced", "solved",
@@ -646,7 +642,14 @@ def converter_capabilities():
 def converter_convert():
     conversion = (request.form.get('conversion') or '').strip().lower()
     uploads = request.files.getlist('files')
-    target_format = request.form.get('target_format')  # For image conversion
+    target_format = request.form.get('target_format')
+    quality = request.form.get('quality', 85)
+    compress_level = request.form.get('compress_level', 6)
+    resize_mode = request.form.get('resize_mode', 'none')
+    scale_percent = request.form.get('scale_percent', 50)
+    width = request.form.get('width')
+    height = request.form.get('height')
+    keep_aspect = request.form.get('keep_aspect', 'true')
 
     if not uploads:
         return jsonify({'error': 'Please select at least one file.'}), 400
@@ -668,7 +671,17 @@ def converter_convert():
             return jsonify({'error': 'No valid files were uploaded.'}), 400
 
         _cleanup_old_outputs()
-        resp, status = _run_conversion(conversion, files, target_format=target_format)
+        resp, status = _run_conversion(
+            conversion, files,
+            target_format=target_format,
+            quality=quality,
+            compress_level=compress_level,
+            resize_mode=resize_mode,
+            scale_percent=scale_percent,
+            width=width,
+            height=height,
+            keep_aspect=keep_aspect
+        )
         return resp, status
 
     except subprocess.TimeoutExpired:

@@ -63,14 +63,8 @@
       transition: all 0.2s;
       white-space: nowrap;
     }
-    .nav button:hover {
-      background: #f1f5f9;
-      color: #0f172a;
-    }
-    .nav button.active {
-      background: #eef2ff;
-      color: #4f46e5;
-    }
+    .nav button:hover { background: #f1f5f9; color: #0f172a; }
+    .nav button.active { background: #eef2ff; color: #4f46e5; }
 
     .wrap {
       width: 100%;
@@ -82,16 +76,8 @@
       text-align: center;
       margin-bottom: 20px;
     }
-    .hero h1 {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-bottom: 4px;
-    }
-    .hero p {
-      color: #64748b;
-      font-size: 15px;
-    }
+    .hero h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+    .hero p { color: #64748b; font-size: 15px; }
 
     .converter-card {
       background: #ffffff;
@@ -111,13 +97,8 @@
       scrollbar-width: thin;
       width: 100%;
     }
-    .tabs-wrapper::-webkit-scrollbar {
-      height: 6px;
-    }
-    .tabs-wrapper::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 999px;
-    }
+    .tabs-wrapper::-webkit-scrollbar { height: 6px; }
+    .tabs-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
     .tabs {
       display: flex !important;
       flex-wrap: nowrap !important;
@@ -140,15 +121,8 @@
       white-space: nowrap;
       flex-shrink: 0 !important;
     }
-    .tab:hover {
-      background: #f8fafc;
-      border-color: #cbd5e1;
-    }
-    .tab.active {
-      background: #4f46e5;
-      border-color: #4f46e5;
-      color: #ffffff;
-    }
+    .tab:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .tab.active { background: #4f46e5; border-color: #4f46e5; color: #fff; }
 
     .panel { display: none; }
     .panel.active { display: block; }
@@ -166,25 +140,10 @@
       transition: all 0.25s;
       cursor: pointer;
     }
-    .drop-zone.drag-over {
-      border-color: #4f46e5;
-      background: #eef2ff;
-    }
-    .drop-zone .icon {
-      font-size: 36px;
-      display: block;
-      margin-bottom: 6px;
-    }
-    .drop-zone h3 {
-      font-size: 17px;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    .drop-zone p {
-      color: #64748b;
-      font-size: 13px;
-      margin-bottom: 12px;
-    }
+    .drop-zone.drag-over { border-color: #4f46e5; background: #eef2ff; }
+    .drop-zone .icon { font-size: 36px; display: block; margin-bottom: 6px; }
+    .drop-zone h3 { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+    .drop-zone p { color: #64748b; font-size: 13px; margin-bottom: 12px; }
     .drop-zone .choose {
       display: inline-flex;
       background: #4f46e5;
@@ -197,43 +156,86 @@
       transition: background 0.2s;
       border: none;
     }
-    .drop-zone .choose:hover {
-      background: #4338ca;
-    }
-    .drop-zone input[type="file"] {
-      display: none;
-    }
+    .drop-zone .choose:hover { background: #4338ca; }
+    .drop-zone input[type="file"] { display: none; }
 
-    .format-selector {
-      margin-top: 12px;
+    .image-options {
+      margin-top: 14px;
       display: none;
-      align-items: center;
+      flex-direction: column;
       gap: 12px;
-      flex-wrap: wrap;
-      padding: 10px 14px;
+      padding: 14px 16px;
       background: #f8fafc;
-      border-radius: 8px;
+      border-radius: 10px;
       border: 1px solid #e2e8f0;
     }
-    .format-selector.visible {
+    .image-options.visible { display: flex; }
+
+    .option-row {
       display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
     }
-    .format-selector label {
+    .option-row label {
       font-weight: 600;
-      font-size: 14px;
+      font-size: 13px;
       color: #334155;
+      min-width: 80px;
     }
-    .format-selector select {
-      padding: 6px 12px;
+    .option-row input[type="number"],
+    .option-row input[type="text"] {
+      width: 80px;
+      padding: 4px 8px;
       border: 1px solid #e2e8f0;
       border-radius: 6px;
-      font-size: 14px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .option-row input[type="number"]:focus,
+    .option-row input[type="text"]:focus {
+      outline: 2px solid #818cf8;
+      border-color: transparent;
+    }
+    .option-row select {
+      padding: 4px 8px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 13px;
       font-family: inherit;
       background: #fff;
     }
-    .format-selector select:focus {
+    .option-row select:focus {
       outline: 2px solid #818cf8;
       border-color: transparent;
+    }
+    .option-row .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #334155;
+    }
+    .option-row .checkbox-group input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #4f46e5;
+    }
+
+    .quality-slider, .compress-slider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .quality-slider input[type="range"],
+    .compress-slider input[type="range"] {
+      width: 120px;
+      accent-color: #4f46e5;
+    }
+    .quality-slider span, .compress-slider span {
+      font-weight: 600;
+      font-size: 14px;
+      min-width: 30px;
     }
 
     .files {
@@ -251,17 +253,8 @@
       border-radius: 8px;
       font-size: 13px;
     }
-    .file-item .name {
-      font-weight: 500;
-      color: #0f172a;
-      word-break: break-word;
-    }
-    .file-item .size {
-      color: #64748b;
-      font-size: 12px;
-      margin-left: 8px;
-      white-space: nowrap;
-    }
+    .file-item .name { font-weight: 500; color: #0f172a; word-break: break-word; }
+    .file-item .size { color: #64748b; font-size: 12px; margin-left: 8px; white-space: nowrap; }
 
     .actions {
       display: flex;
@@ -281,13 +274,8 @@
       transition: background 0.2s;
       font-family: inherit;
     }
-    .convert-btn:hover {
-      background: #4338ca;
-    }
-    .convert-btn:disabled {
-      opacity: 0.5;
-      pointer-events: none;
-    }
+    .convert-btn:hover { background: #4338ca; }
+    .convert-btn:disabled { opacity: 0.5; pointer-events: none; }
 
     .status {
       margin-top: 14px;
@@ -299,14 +287,8 @@
       display: none;
     }
     .status.show { display: block; }
-    .status.error {
-      background: #fef2f2;
-      color: #b91c1c;
-    }
-    .status.ok {
-      background: #f0fdf4;
-      color: #166534;
-    }
+    .status.error { background: #fef2f2; color: #b91c1c; }
+    .status.ok { background: #f0fdf4; color: #166534; }
 
     .note {
       margin-top: 14px;
@@ -354,7 +336,9 @@
       .convert-btn { width: 100%; justify-content: center; padding: 10px 16px; font-size: 13px; }
       .actions { justify-content: stretch; }
       .note { font-size: 11px; }
-      .format-selector { flex-direction: column; align-items: stretch; gap: 6px; }
+      .option-row { flex-direction: column; align-items: stretch; gap: 6px; }
+      .quality-slider input[type="range"],
+      .compress-slider input[type="range"] { width: 100%; }
     }
     @media (max-width: 480px) {
       .brand { font-size: 16px; }
@@ -400,16 +384,63 @@
           </div>
         </div>
 
-        <div class="format-selector" id="formatSelector">
-          <label for="targetFormat">Convert to:</label>
-          <select id="targetFormat">
-            <option value="jpeg">JPEG</option>
-            <option value="png">PNG</option>
-            <option value="webp">WebP</option>
-            <option value="bmp">BMP</option>
-            <option value="gif">GIF</option>
-            <option value="tiff">TIFF</option>
-          </select>
+        <!-- Image options -->
+        <div class="image-options" id="imageOptions">
+          <div class="option-row">
+            <label for="targetFormat">Format:</label>
+            <select id="targetFormat">
+              <option value="jpeg">JPEG</option>
+              <option value="png">PNG</option>
+              <option value="webp">WebP</option>
+              <option value="bmp">BMP</option>
+              <option value="gif">GIF</option>
+              <option value="tiff">TIFF</option>
+            </select>
+          </div>
+
+          <!-- Quality slider (visible for JPEG, WebP, GIF) -->
+          <div class="option-row" id="qualityRow" style="display: none;">
+            <label>Quality:</label>
+            <div class="quality-slider">
+              <input type="range" id="quality" min="1" max="100" value="85">
+              <span id="qualityValue">85</span>
+            </div>
+          </div>
+
+          <!-- PNG compression slider -->
+          <div class="option-row" id="compressRow" style="display: none;">
+            <label>Compression:</label>
+            <div class="compress-slider">
+              <input type="range" id="compressLevel" min="0" max="9" value="6">
+              <span id="compressValue">6</span>
+            </div>
+            <span style="font-size:11px; color:#64748b;">(0=none, 9=maximum)</span>
+          </div>
+
+          <div class="option-row">
+            <label>Resize:</label>
+            <select id="resizeMode">
+              <option value="none">No resize</option>
+              <option value="percentage">Scale by %</option>
+              <option value="custom">Custom width/height</option>
+            </select>
+          </div>
+
+          <div class="option-row" id="percentageRow" style="display: none;">
+            <label>Percentage:</label>
+            <input type="number" id="scalePercent" value="50" min="1" max="500" style="width:80px;"> %
+          </div>
+
+          <div class="option-row" id="customSizeRow" style="display: none;">
+            <label>Width:</label>
+            <input type="number" id="customWidth" value="800" min="1" style="width:80px;">
+            <label>Height:</label>
+            <input type="number" id="customHeight" value="600" min="1" style="width:80px;">
+            <div class="checkbox-group">
+              <input type="checkbox" id="keepAspect" checked>
+              <label for="keepAspect">Maintain aspect ratio</label>
+            </div>
+          </div>
         </div>
 
         <div class="files" id="fileList"></div>
@@ -434,14 +465,14 @@
     let conversion = 'word-to-pdf', selectedFiles = [];
     const $ = id => document.getElementById(id);
     const specs = {
-      'word-to-pdf': { title: 'Upload a Word document', hint: 'DOC, DOCX or ODT • up to 50 MB', accept: '.doc,.docx,.odt', multiple: false, button: 'Convert to PDF', showFormat: false },
-      'pdf-to-word': { title: 'Upload a PDF', hint: 'One PDF • text will be extracted into a Word document', accept: '.pdf', multiple: false, button: 'Convert to Word', showFormat: false },
-      'excel-to-pdf': { title: 'Upload an Excel workbook', hint: 'XLS, XLSX or ODS • up to 50 MB', accept: '.xls,.xlsx,.ods', multiple: false, button: 'Convert to PDF', showFormat: false },
-      'powerpoint-to-pdf': { title: 'Upload a PowerPoint presentation', hint: 'PPT, PPTX or ODP • up to 50 MB', accept: '.ppt,.pptx,.odp', multiple: false, button: 'Convert to PDF', showFormat: false },
-      'images-to-pdf': { title: 'Upload images', hint: 'PNG, JPG, JPEG or WebP • multiple files allowed', accept: '.png,.jpg,.jpeg,.webp', multiple: true, button: 'Create PDF', showFormat: false },
-      'pdf-to-images': { title: 'Upload a PDF', hint: 'One PDF • pages are exported as PNG images (ZIP archive)', accept: '.pdf', multiple: false, button: 'Convert to Images', showFormat: false },
-      'merge-pdf': { title: 'Upload PDFs to merge', hint: 'Select two or more PDF files', accept: '.pdf', multiple: true, button: 'Merge PDFs', showFormat: false },
-      'image-to-image': { title: 'Upload an image', hint: 'PNG, JPG, JPEG, WebP, BMP, GIF or TIFF', accept: '.png,.jpg,.jpeg,.webp,.bmp,.gif,.tiff', multiple: false, button: 'Convert Image', showFormat: true }
+      'word-to-pdf': { title: 'Upload a Word document', hint: 'DOC, DOCX or ODT • up to 50 MB', accept: '.doc,.docx,.odt', multiple: false, button: 'Convert to PDF', showOptions: false },
+      'pdf-to-word': { title: 'Upload a PDF', hint: 'One PDF • text will be extracted into a Word document', accept: '.pdf', multiple: false, button: 'Convert to Word', showOptions: false },
+      'excel-to-pdf': { title: 'Upload an Excel workbook', hint: 'XLS, XLSX or ODS • up to 50 MB', accept: '.xls,.xlsx,.ods', multiple: false, button: 'Convert to PDF', showOptions: false },
+      'powerpoint-to-pdf': { title: 'Upload a PowerPoint presentation', hint: 'PPT, PPTX or ODP • up to 50 MB', accept: '.ppt,.pptx,.odp', multiple: false, button: 'Convert to PDF', showOptions: false },
+      'images-to-pdf': { title: 'Upload images', hint: 'PNG, JPG, JPEG or WebP • multiple files allowed', accept: '.png,.jpg,.jpeg,.webp', multiple: true, button: 'Create PDF', showOptions: false },
+      'pdf-to-images': { title: 'Upload a PDF', hint: 'One PDF • pages are exported as PNG images (ZIP archive)', accept: '.pdf', multiple: false, button: 'Convert to Images', showOptions: false },
+      'merge-pdf': { title: 'Upload PDFs to merge', hint: 'Select two or more PDF files', accept: '.pdf', multiple: true, button: 'Merge PDFs', showOptions: false },
+      'image-to-image': { title: 'Upload an image', hint: 'PNG, JPG, JPEG, WebP, BMP, GIF or TIFF', accept: '.png,.jpg,.jpeg,.webp,.bmp,.gif,.tiff', multiple: false, button: 'Convert Image', showOptions: true }
     };
 
     function setStatus(text, type = '') {
@@ -466,6 +497,30 @@
       return s.replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
     }
 
+    function toggleResizeOptions() {
+      const mode = $('resizeMode').value;
+      $('percentageRow').style.display = mode === 'percentage' ? 'flex' : 'none';
+      $('customSizeRow').style.display = mode === 'custom' ? 'flex' : 'none';
+    }
+
+    // Show/hide quality/compression sliders based on format
+    function updateFormatSliders() {
+      const format = $('targetFormat').value;
+      const qualityRow = $('qualityRow');
+      const compressRow = $('compressRow');
+      if (format === 'jpeg' || format === 'webp' || format === 'gif') {
+        qualityRow.style.display = 'flex';
+        compressRow.style.display = 'none';
+      } else if (format === 'png') {
+        qualityRow.style.display = 'none';
+        compressRow.style.display = 'flex';
+      } else {
+        // BMP, TIFF – neither
+        qualityRow.style.display = 'none';
+        compressRow.style.display = 'none';
+      }
+    }
+
     function configure() {
       const s = specs[conversion];
       $('dropTitle').textContent = s.title;
@@ -473,17 +528,20 @@
       $('files').accept = s.accept;
       $('files').multiple = s.multiple;
       $('convertBtn').textContent = s.button;
-      const formatSel = $('formatSelector');
-      if (s.showFormat) {
-        formatSel.classList.add('visible');
+      const opt = $('imageOptions');
+      if (s.showOptions) {
+        opt.classList.add('visible');
+        updateFormatSliders();  // show correct slider for initial format
       } else {
-        formatSel.classList.remove('visible');
+        opt.classList.remove('visible');
       }
       selectedFiles = [];
       renderFiles();
       setStatus('');
+      toggleResizeOptions();
     }
 
+    // Event listeners
     document.querySelectorAll('.tab').forEach(b => {
       b.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
@@ -508,6 +566,23 @@
       renderFiles();
     });
 
+    // Quality slider update
+    $('quality').addEventListener('input', function() {
+      $('qualityValue').textContent = this.value;
+    });
+
+    // PNG compression slider update
+    $('compressLevel').addEventListener('input', function() {
+      $('compressValue').textContent = this.value;
+    });
+
+    // Format change – show correct slider
+    $('targetFormat').addEventListener('change', updateFormatSliders);
+
+    // Resize mode change
+    $('resizeMode').addEventListener('change', toggleResizeOptions);
+
+    // Convert button
     $('convertBtn').addEventListener('click', async () => {
       const s = specs[conversion];
       if (!selectedFiles.length) return;
@@ -520,8 +595,23 @@
       selectedFiles.forEach(f => form.append('files', f));
 
       if (conversion === 'image-to-image') {
-        const target = $('targetFormat').value;
-        form.append('target_format', target);
+        form.append('target_format', $('targetFormat').value);
+        // Add quality if visible
+        if ($('qualityRow').style.display !== 'none') {
+          form.append('quality', $('quality').value);
+        }
+        // Add PNG compression if visible
+        if ($('compressRow').style.display !== 'none') {
+          form.append('compress_level', $('compressLevel').value);
+        }
+        form.append('resize_mode', $('resizeMode').value);
+        if ($('resizeMode').value === 'percentage') {
+          form.append('scale_percent', $('scalePercent').value);
+        } else if ($('resizeMode').value === 'custom') {
+          form.append('width', $('customWidth').value);
+          form.append('height', $('customHeight').value);
+          form.append('keep_aspect', $('keepAspect').checked ? 'true' : 'false');
+        }
       }
 
       const btn = $('convertBtn');
@@ -561,6 +651,7 @@
       }
     });
 
+    // Initial setup
     configure();
   </script>
 </body>

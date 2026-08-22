@@ -156,15 +156,6 @@ try:
         return output
 
 except ImportError:
-    # Fallback to custom implementation
-    import pymupdf
-    from docx import Document
-    from docx.shared import Pt as DocPt, RGBColor
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
-
-    # (Full fallback code omitted for brevity – include your existing fallback here)
-    # For production, you should copy the full fallback implementation from your previous version.
-    # I'll keep a placeholder that raises an error.
     def pdf_to_word(src: Path) -> Path:
         raise NotImplementedError("pdf2docx is not installed. Please install it or implement the fallback converter.")
 
@@ -208,28 +199,96 @@ def merge_pdfs(files):
         result.close()
 
 
-# ---------- Image conversion ----------
-def convert_image(src: Path, target_format: str) -> Path:
-    """Convert an image to the target format using Pillow."""
+# ---------- Image conversion with validation ----------
+def convert_image(src: Path, target_format: str, quality: int = 85,
+                  resize_mode: str = 'none', scale_percent: int = 50,
+                  width: int = None, height: int = None, keep_aspect: bool = True,
+                  compress_level: int = 6) -> Path:
+    """Convert an image with optional resizing and quality/compression settings."""
     try:
         img = Image.open(src)
     except Exception as e:
         raise ValueError(f"Invalid image file: {e}")
 
-    # Convert to RGB if target is JPEG and image has alpha or is indexed
+    # Validate and clamp quality/compress_level
+    try:
+        quality = int(quality)
+    except (TypeError, ValueError):
+        quality = 85
+    quality = max(1, min(100, quality))
+
+    try:
+        compress_level = int(compress_level)
+    except (TypeError, ValueError):
+        compress_level = 6
+    compress_level = max(0, min(9, compress_level))
+
+    # Resize
+    if resize_mode == 'percentage':
+        try:
+            scale_percent = float(scale_percent)
+        except (TypeError, ValueError):
+            scale_percent = 50.0
+        scale = scale_percent / 100.0
+        new_width = int(img.width * scale)
+        new_height = int(img.height * scale)
+        if new_width < 1 or new_height < 1:
+            raise ValueError("Scale percentage too small.")
+        img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+    elif resize_mode == 'custom':
+        if width is None or height is None:
+            raise ValueError("Width and height must be provided for custom resize.")
+        try:
+            w = int(width)
+            h = int(height)
+        except (TypeError, ValueError):
+            raise ValueError("Width and height must be integers.")
+        if w < 1 or h < 1:
+            raise ValueError("Width and height must be positive.")
+        if keep_aspect:
+            ratio = min(w / img.width, h / img.height)
+            new_width = int(img.width * ratio)
+            new_height = int(img.height * ratio)
+            if new_width < 1 or new_height < 1:
+                raise ValueError("Target dimensions too small.")
+            img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        else:
+            img = img.resize((w, h), Image.Resampling.LANCZOS)
+
+    # Convert to RGB for JPEG
     if target_format.lower() in ('jpeg', 'jpg') and img.mode in ('RGBA', 'P', 'LA'):
         img = img.convert('RGB')
 
+    # Save
     output = OUTPUT_DIR / f"{uuid.uuid4().hex}.{target_format.lower()}"
     save_format = target_format.upper()
     if save_format == 'JPG':
         save_format = 'JPEG'
-    img.save(output, format=save_format)
+
+    save_kwargs = {}
+    if save_format in ('JPEG', 'WEBP'):
+        save_kwargs['quality'] = quality
+    elif save_format == 'GIF':
+        save_kwargs['optimize'] = True
+        # Do not set 'quality' for GIF – Pillow ignores it anyway
+    elif save_format == 'PNG':
+        save_kwargs['compress_level'] = compress_level
+
+    img.save(output, format=save_format, **save_kwargs)
     return output
 
 
 # ----- Conversion router -----
-def _run_conversion(conversion: str, files: list, target_format: str = None) -> tuple:
+def _run_conversion(conversion: str, files: list, **kwargs) -> tuple:
+    target_format = kwargs.get('target_format')
+    quality = kwargs.get('quality', 85)
+    compress_level = kwargs.get('compress_level', 6)
+    resize_mode = kwargs.get('resize_mode', 'none')
+    scale_percent = kwargs.get('scale_percent', 50)
+    width = kwargs.get('width')
+    height = kwargs.get('height')
+    keep_aspect = kwargs.get('keep_aspect', 'true').lower() == 'true'
+
     if conversion == "word-to-pdf":
         if len(files) != 1 or files[0].suffix.lower() not in {".doc", ".docx", ".odt"}:
             return (jsonify({"error": "Word to PDF requires one DOC, DOCX or ODT file."}), 400)
@@ -287,10 +346,16 @@ def _run_conversion(conversion: str, files: list, target_format: str = None) -> 
             return (jsonify({"error": "Target format not specified."}), 400)
         if len(files) != 1:
             return (jsonify({"error": "Please upload exactly one image."}), 400)
+
         try:
-            output = convert_image(files[0], target_format)
+            output = convert_image(
+                files[0], target_format, quality,
+                resize_mode, scale_percent, width, height, keep_aspect,
+                compress_level
+            )
         except Exception as e:
             return (jsonify({"error": f"Image conversion failed: {str(e)}"}), 400)
+
         ext = target_format.lower()
         if ext == 'jpeg':
             ext = 'jpg'
