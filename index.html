@@ -1272,14 +1272,49 @@
     const tailorStatus = document.getElementById('tailorStatus');
 
     generateTailoredBtn.onclick = async () => {
-       const data = await res.json();
+      const file = document.getElementById('tailorResumeFile').files[0];
+      const jdText = document.getElementById('tailorJdText').value;
+      const jdFile = document.getElementById('tailorJdFile').files[0];
+
+      if (!file) { alert('Please upload your resume.'); return; }
+      if (!jdText.trim() && !jdFile) { alert('Please paste or upload the Job Description.'); return; }
+
+      const formData = new FormData();
+      formData.append('resume', file);
+      if (jdText) formData.append('jd', jdText); 
+      if (jdFile) formData.append('jd_file', jdFile);
+
+      generateTailoredBtn.disabled = true; 
+      generateTailoredBtn.textContent = '⏳ Analyzing & Rewriting...';
+      tailorStatus.textContent = 'Calling AI and generating PDF...'; 
+      tailorStatus.style.color = '#4f46e5';
+      
+      // Hide previous results safely
+      document.getElementById('tailorResultArea').style.display = 'none';
+      document.getElementById('downloadTailoredBtn').style.display = 'none';
+      document.getElementById('previewPlaceholder').style.display = 'flex';
+      
+      const previewImg = document.getElementById('pdfPreviewImg');
+      if (previewImg) previewImg.style.display = 'none'; // Safe check for the new img tag
+
+      try {
+        const res = await fetch('/api/tailor-resume', { method: 'POST', body: formData });
+        
+        if (!res.ok) { 
+            const err = await res.json(); 
+            throw new Error(err.error || 'Failed to generate'); 
+        }
+
+        const data = await res.json();
         document.getElementById('tailorResultArea').style.display = 'flex';
 
         // 1. Update Score
         const score = data.match_score;
         const scoreBar = document.getElementById('matchScoreBar');
         const scoreText = document.getElementById('matchScoreText');
-        scoreText.textContent = score + '%'; scoreBar.style.width = score + '%';
+        
+        scoreText.textContent = score + '%'; 
+        scoreBar.style.width = score + '%';
         if (score >= 80) scoreBar.style.background = '#059669';
         else if (score >= 60) scoreBar.style.background = '#d97706';
         else scoreBar.style.background = '#dc2626';
@@ -1290,11 +1325,10 @@
             document.getElementById('matchDetails').innerHTML = '';
         }
 
-        // 2. Show the Image Preview (Works on Mobile & Desktop)
-        if (data.preview_img_b64) {
-            const img = document.getElementById('pdfPreviewImg');
-            img.src = `data:image/png;base64,${data.preview_img_b64}`;
-            img.style.display = 'block';
+        // 2. Show the Image Preview
+        if (data.preview_img_b64 && previewImg) {
+            previewImg.src = `data:image/png;base64,${data.preview_img_b64}`;
+            previewImg.style.display = 'block';
             document.getElementById('previewPlaceholder').style.display = 'none';
         }
 
@@ -1307,7 +1341,15 @@
         dlBtn.href = url; 
         dlBtn.style.display = 'inline-flex';
 
-        tailorStatus.textContent = '✅ Success! Preview generated.'; tailorStatus.style.color = '#059669';
+        tailorStatus.textContent = '✅ Success! Preview generated.'; 
+        tailorStatus.style.color = '#059669';
+      } catch (err) {
+        tailorStatus.textContent = '❌ ' + err.message; 
+        tailorStatus.style.color = '#dc2626';
+      } finally {
+        generateTailoredBtn.disabled = false; 
+        generateTailoredBtn.textContent = '🪄 Generate Optimized Resume';
+      }
     };
   </script>
 </body>
