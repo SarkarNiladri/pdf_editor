@@ -20,47 +20,17 @@
       flex-direction: column;
     }
     
-    /* --- Top Navigation --- */
     .app-header {
-      height: 64px;
-      display: flex;
-      align-items: center;
-      padding: 0 24px;
-      background: #ffffff;
-      border-bottom: 1px solid #e2e8f0;
-      flex-shrink: 0;
-      z-index: 100;
+      height: 64px; display: flex; align-items: center; padding: 0 24px; background: #ffffff; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; z-index: 100;
     }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-      cursor: pointer;
-    }
+    .brand { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; cursor: pointer; }
     .brand-icon { background: #4f46e5; color: #fff; border-radius: 8px; padding: 6px 10px; font-size: 18px; }
-    .btn-home {
-      display: none;
-      margin-left: auto;
-      background: #f1f5f9;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: 600;
-      color: #0f172a;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background 0.2s;
-    }
+    .btn-home { display: none; margin-left: auto; background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; color: #0f172a; cursor: pointer; font-size: 14px; transition: background 0.2s; }
     .btn-home:hover { background: #e2e8f0; }
 
-    /* --- Global Views --- */
     .app-view { display: none; flex: 1; height: calc(100vh - 64px); position: relative; overflow: hidden; }
     .app-view.active { display: flex; }
 
-    /* --- HOME VIEW (Grid Dashboard) --- */
     #homeView { background: #f8fafc; overflow-y: auto; padding: 40px 20px; justify-content: center; }
     .home-container { max-width: 1200px; width: 100%; margin: 0 auto; }
     .home-header { text-align: center; margin-bottom: 40px; }
@@ -74,7 +44,6 @@
     .tool-card h3 { font-size: 16px; font-weight: 700; color: #0f172a; }
     .tool-card p { font-size: 13px; color: #64748b; line-height: 1.5; }
 
-    /* --- STANDALONE PAGES (Tailor, Summarize, ATS) --- */
     .page-container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 30px 20px; overflow-y: auto; height: 100%; }
     .card-panel { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
     
@@ -94,7 +63,6 @@
     .upload-zone:hover { border-color: #818cf8; background: #eef2ff; }
     .upload-zone .icon { font-size: 40px; display: block; margin-bottom: 10px; }
 
-    /* --- PDF EDITOR LAYOUT --- */
     .editor-layout { display: flex; width: 100%; height: 100%; }
     .sidebar { width: 320px; min-width: 320px; background: #ffffff; border-right: 1px solid #e2e8f0; padding: 20px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; z-index: 20; }
     .sidebar-close { display: none; background: none; border: none; font-size: 24px; align-self: flex-end; cursor: pointer; color: #64748b; }
@@ -135,7 +103,6 @@
     .resize-handle.e { right: -10px; top: 50%; transform: translateY(-50%); cursor: ew-resize; } .resize-handle.se { right: -10px; bottom: -10px; cursor: nwse-resize; } .resize-handle.s { left: 50%; bottom: -10px; transform: translateX(-50%); cursor: ns-resize; }
     .resize-handle.sw { left: -10px; bottom: -10px; cursor: nesw-resize; } .resize-handle.w { left: -10px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
 
-    /* --- Modals --- */
     .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 10000; padding: 12px; }
     .modal.open { display: flex; }
     .modal-dialog { width: min(540px, 100%); max-height: 90vh; background: #ffffff; border-radius: 16px; padding: 24px 20px; box-shadow: 0 40px 80px rgba(0, 0, 0, 0.3); overflow-y: auto; }
@@ -146,7 +113,6 @@
     .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; flex-wrap: wrap; }
     .modal-actions .btn-danger { margin-right: auto; }
 
-    /* Responsive Grids */
     @media (max-width: 900px) { .tailor-grid { grid-template-columns: 1fr !important; } }
     .converter-view { display: none; width: 100%; height: 100%; border: 0; }
     .converter-view.active { display: block; }
@@ -154,7 +120,6 @@
 </head>
 <body>
 
-  <!-- APP HEADER -->
   <header class="app-header">
     <div class="brand" onclick="goHome()">
       <span class="brand-icon">▣</span> PDF Suite
@@ -164,85 +129,42 @@
 
   <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-  <!-- ==================== 1. HOME VIEW (GRID) ==================== -->
+  <!-- ==================== HOME VIEW ==================== -->
   <div class="app-view active" id="homeView">
     <div class="home-container">
       <div class="home-header">
         <h1>All your document tools in one place</h1>
         <p>Edit, convert, and optimize your PDFs with AI-powered precision.</p>
       </div>
-      
       <div class="tool-grid">
-        <div class="tool-card" onclick="showEditor()">
-          <div class="tool-icon icon-purple">✏️</div>
-          <h3>Edit PDF</h3>
-          <p>Add text, images, shapes, or freehand annotations to a PDF document.</p>
-        </div>
-        <div class="tool-card" onclick="showTailor()">
-          <div class="tool-icon icon-purple">✨</div>
-          <h3>AI Resume Tailor</h3>
-          <p>Upload a resume and a Job Description. AI will rewrite it to match the role.</p>
-        </div>
-        <div class="tool-card" onclick="showSummarize()">
-          <div class="tool-icon icon-purple">🤖</div>
-          <h3>Summarize PDF</h3>
-          <p>Extract the core meaning of long documents into a concise 5-sentence summary.</p>
-        </div>
-        <div class="tool-card" onclick="showAts()">
-          <div class="tool-icon icon-purple">🧠</div>
-          <h3>ATS Compatibility</h3>
-          <p>Analyze your resume against Applicant Tracking Systems to find weak points.</p>
-        </div>
-        <div class="tool-card" onclick="showConverter('word-to-pdf')">
-          <div class="tool-icon icon-blue">📄</div>
-          <h3>Word to PDF</h3>
-          <p>Make DOC and DOCX files easy to read by converting them to PDF.</p>
-        </div>
-        <div class="tool-card" onclick="showConverter('pdf-to-word')">
-          <div class="tool-icon icon-blue">📝</div>
-          <h3>PDF to Word</h3>
-          <p>Convert PDF files into easy to edit DOC and DOCX documents.</p>
-        </div>
-        <div class="tool-card" onclick="showConverter('excel-to-pdf')">
-          <div class="tool-icon icon-green">📊</div>
-          <h3>Excel to PDF</h3>
-          <p>Make Excel spreadsheets easy to read by converting them to PDF.</p>
-        </div>
-        <div class="tool-card" onclick="showConverter('powerpoint-to-pdf')">
-          <div class="tool-icon icon-orange">📽️</div>
-          <h3>PowerPoint to PDF</h3>
-          <p>Make PPT and PPTX slideshows easy to view by converting them to PDF.</p>
-        </div>
-        <div class="tool-card" onclick="showConverter('images-to-pdf')">
-          <div class="tool-icon icon-orange">🖼️</div>
-          <h3>Images to PDF</h3>
-          <p>Convert JPG, PNG, and WebP images into a single PDF document.</p>
-        </div>
-        <div class="tool-card" onclick="showConverter('pdf-to-images')">
-          <div class="tool-icon icon-blue">📸</div>
-          <h3>PDF to Images</h3>
-          <p>Export every page of your PDF as a high-quality PNG image.</p>
-        </div>
-        <div class="tool-card" onclick="showConverter('merge-pdf')">
-          <div class="tool-icon icon-red">🔗</div>
-          <h3>Merge PDFs</h3>
-          <p>Combine multiple PDFs into one document in the order you want.</p>
-        </div>
-        <div class="tool-card" onclick="showConverter('image-to-image')">
-          <div class="tool-icon icon-gray">🔄</div>
-          <h3>Image to Image</h3>
-          <p>Convert between JPG, PNG, WebP, BMP, GIF, and TIFF formats easily.</p>
-        </div>
+        <div class="tool-card" onclick="showEditor()"><div class="tool-icon icon-purple">✏️</div><h3>Edit PDF</h3><p>Add text, images, shapes, or freehand annotations to a PDF document.</p></div>
+        <div class="tool-card" onclick="showTailor()"><div class="tool-icon icon-purple">✨</div><h3>AI Resume Tailor</h3><p>Upload a resume and a Job Description. AI will rewrite it to match the role.</p></div>
+        <div class="tool-card" onclick="showSummarize()"><div class="tool-icon icon-purple">🤖</div><h3>Summarize PDF</h3><p>Extract the core meaning of long documents into a concise 5-sentence summary.</p></div>
+        <div class="tool-card" onclick="showAts()"><div class="tool-icon icon-purple">🧠</div><h3>ATS Compatibility</h3><p>Analyze your resume against Applicant Tracking Systems to find weak points.</p></div>
+        <div class="tool-card" onclick="showConverter('word-to-pdf')"><div class="tool-icon icon-blue">📄</div><h3>Word to PDF</h3><p>Make DOC and DOCX files easy to read by converting them to PDF.</p></div>
+        <div class="tool-card" onclick="showConverter('pdf-to-word')"><div class="tool-icon icon-blue">📝</div><h3>PDF to Word</h3><p>Convert PDF files into easy to edit DOC and DOCX documents.</p></div>
+        <div class="tool-card" onclick="showConverter('excel-to-pdf')"><div class="tool-icon icon-green">📊</div><h3>Excel to PDF</h3><p>Make Excel spreadsheets easy to read by converting them to PDF.</p></div>
+        <div class="tool-card" onclick="showConverter('powerpoint-to-pdf')"><div class="tool-icon icon-orange">📽️</div><h3>PowerPoint to PDF</h3><p>Make PPT and PPTX slideshows easy to view by converting them to PDF.</p></div>
+        <div class="tool-card" onclick="showConverter('images-to-pdf')"><div class="tool-icon icon-orange">🖼️</div><h3>Images to PDF</h3><p>Convert JPG, PNG, and WebP images into a single PDF document.</p></div>
+        <div class="tool-card" onclick="showConverter('pdf-to-images')"><div class="tool-icon icon-blue">📸</div><h3>PDF to Images</h3><p>Export every page of your PDF as a high-quality PNG image.</p></div>
+        <div class="tool-card" onclick="showConverter('merge-pdf')"><div class="tool-icon icon-red">🔗</div><h3>Merge PDFs</h3><p>Combine multiple PDFs into one document in the order you want.</p></div>
+        <div class="tool-card" onclick="showConverter('image-to-image')"><div class="tool-icon icon-gray">🔄</div><h3>Image to Image</h3><p>Convert between JPG, PNG, WebP, BMP, GIF, and TIFF formats easily.</p></div>
       </div>
     </div>
   </div>
 
-  <!-- ==================== 2. PDF EDITOR VIEW ==================== -->
+  <!-- ==================== PDF EDITOR VIEW ==================== -->
   <div class="app-view" id="editorView">
     <div class="editor-layout">
       <aside class="sidebar" id="sidebar">
         <button class="sidebar-close" id="sidebarClose">✕</button>
-        <div class="sidebar-title">📄 PDF Editor</div>
+        
+        <!-- ADDED: New Document Button -->
+        <div class="sidebar-title" style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+          <span>📄 PDF Editor</span>
+          <button class="btn btn-ghost" id="newDocBtn" style="display:none; padding:4px 8px; min-height:auto; font-size:12px; border:1px solid #e2e8f0; cursor:pointer;">➕ New</button>
+        </div>
+
         <div class="upload-zone" id="uploadArea">
           <span class="icon">📤</span>
           <p>Drop PDF here or click to browse</p>
@@ -252,9 +174,7 @@
 
         <div id="tools" hidden style="display:flex; flex-direction:column; gap:14px;">
           <div class="info-card">
-            <div style="display:flex; justify-content:space-between; font-weight:600; margin-bottom:4px;">
-              <span>📊 Document stats</span>
-            </div>
+            <div style="display:flex; justify-content:space-between; font-weight:600; margin-bottom:4px;"><span>📊 Document stats</span></div>
             <div class="stat-grid">
               <div class="stat-item"><span class="label">Sections</span> <span class="value" id="textCount">0</span></div>
               <div class="stat-item"><span class="label">Edits</span> <span class="value" id="editCount">0</span></div>
@@ -312,31 +232,26 @@
     </div>
   </div>
 
-  <!-- ==================== 3. CONVERTER VIEW ==================== -->
+  <!-- ==================== CONVERTER VIEW ==================== -->
   <div class="app-view" id="converterView" style="padding:0;">
     <iframe id="converterIframe" class="converter-view" title="Document Converter" src="about:blank"></iframe>
   </div>
 
-  <!-- ==================== 4. AI TAILOR VIEW ==================== -->
+  <!-- ==================== AI TAILOR VIEW ==================== -->
   <div class="app-view" id="tailorView" style="overflow-y:auto; padding:24px;">
     <div class="page-container tailor-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start;">
-      
       <div class="card-panel">
         <h3 style="font-size:18px; font-weight:700; margin-bottom:6px;">Optimize for ATS</h3>
         <p style="color:#64748b; font-size:13px; margin-bottom:20px;">Upload your resume and JD. AI will rewrite your experience to match the role.</p>
-
         <label style="display:block; font-weight:600; font-size:14px; margin-bottom:8px;">1. Upload Current Resume (PDF or DOCX)</label>
         <input type="file" id="tailorResumeFile" accept=".pdf,.docx" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:20px;">
-        
         <label style="display:block; font-weight:600; font-size:14px; margin-bottom:8px;">2. Job Description (Paste or Upload)</label>
         <input type="file" id="tailorJdFile" accept=".pdf,.docx,.txt" style="width:100%; padding:10px; border:1px dashed #cbd5e1; border-radius:8px; margin-bottom:10px;">
         <div style="text-align:center; color:#94a3b8; font-size:12px; margin-bottom:10px;">— OR —</div>
         <textarea id="tailorJdText" rows="6" placeholder="Paste the Job Description here..." style="width:100%; padding:12px; border:1px solid #e2e8f0; border-radius:8px; font-family:inherit; margin-bottom:20px;"></textarea>
-
         <button class="btn btn-primary" id="generateTailoredBtn" style="width:100%; padding:14px; font-size:16px;">🪄 Generate Optimized Resume</button>
         <div id="tailorStatus" style="margin-top:15px; font-size:14px; text-align:center; font-weight:600;"></div>
       </div>
-
       <div id="tailorResultArea" style="display:none; flex-direction:column; gap:16px;">
         <div class="card-panel">
           <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
@@ -348,7 +263,6 @@
           </div>
           <div id="matchDetails" style="margin-top:12px; font-size:13px; color:#64748b;"></div>
         </div>
-
         <div class="card-panel" style="flex:1; display:flex; flex-direction:column;">
           <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
             <span style="font-weight:600; font-size:14px;">PDF Preview</span>
@@ -361,39 +275,33 @@
     </div>
   </div>
 
-  <!-- ==================== 5. STANDALONE SUMMARIZE VIEW ==================== -->
+  <!-- ==================== SUMMARIZE VIEW ==================== -->
   <div class="app-view" id="summarizeView" style="justify-content:center; overflow-y:auto; padding:40px 20px;">
     <div class="card-panel" style="max-width:700px; width:100%; height:fit-content;">
       <h2 style="font-size:24px; font-weight:700; margin-bottom:8px;">🤖 Document Summarizer</h2>
       <p style="color:#64748b; margin-bottom:24px;">Upload a PDF and get a 5-sentence summary instantly.</p>
-      
       <div class="upload-zone" id="summarizeUploadZone" style="margin-bottom:20px;">
         <span class="icon">📤</span>
         <p style="font-weight:600; color:#334155;">Click to upload a PDF</p>
         <input type="file" id="summarizeFileInput" accept=".pdf" style="display:none;">
       </div>
-      
       <button class="btn btn-primary" id="runSummarizeBtn" style="width:100%; padding:12px; font-size:16px;" disabled>Generate Summary</button>
-      
       <div id="summaryResultBox" style="display:none; margin-top:24px; background:#f8fafc; padding:20px; border-radius:12px; border:1px solid #e2e8f0; line-height:1.7; font-size:15px;"></div>
       <div id="summaryStatus" style="margin-top:15px; text-align:center; font-weight:600;"></div>
     </div>
   </div>
 
-  <!-- ==================== 6. STANDALONE ATS CHECKER VIEW ==================== -->
+  <!-- ==================== ATS CHECKER VIEW ==================== -->
   <div class="app-view" id="atsView" style="justify-content:center; overflow-y:auto; padding:40px 20px;">
     <div class="card-panel" style="max-width:700px; width:100%; height:fit-content;">
       <h2 style="font-size:24px; font-weight:700; margin-bottom:8px;">🧠 ATS Compatibility Check</h2>
       <p style="color:#64748b; margin-bottom:24px;">Upload your resume (PDF or DOCX) to see how well it scores against Applicant Tracking Systems.</p>
-      
       <div class="upload-zone" id="atsUploadZone" style="margin-bottom:20px;">
         <span class="icon">📤</span>
         <p style="font-weight:600; color:#334155;">Click to upload your resume</p>
         <input type="file" id="atsFileInput" accept=".pdf,.docx" style="display:none;">
       </div>
-      
       <div id="atsStatus" style="text-align:center; font-weight:600; margin-bottom:16px;"></div>
-      
       <div id="atsResultBox" style="display:none;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
           <span style="font-weight:700; font-size:18px;">Overall Score</span>
@@ -402,9 +310,7 @@
         <div style="width:100%; height:10px; background:#e2e8f0; border-radius:999px; overflow:hidden; margin-bottom:24px;">
           <div id="atsScoreBar" style="height:100%; width:0%; background:#4f46e5; transition:width 0.5s;"></div>
         </div>
-        
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;" id="atsBreakdown"></div>
-        
         <div style="margin-top:20px; font-size:14px; color:#64748b; text-align:center;">
           <span id="atsWordCount" style="margin:0 10px;"></span> 
           <span id="atsSectionsFound" style="margin:0 10px;"></span> 
@@ -522,16 +428,10 @@
     const $ = id => document.getElementById(id);
     
     function snapshot() { return JSON.stringify({ edited, added, shapes, images, additionOrder }); }
-    function restoreSnapshot(s) {
-      const x = JSON.parse(s);
-      edited = x.edited || {}; added = x.added || []; shapes = x.shapes || []; images = x.images || []; additionOrder = Number(x.additionOrder) || 0;
-      const all = [...added, ...shapes, ...images];
-      const max = all.reduce((m, o) => Math.max(m, Number(o.order) || 0), 0);
-      if (additionOrder <= max) additionOrder = max + 1;
-    }
+    function restoreSnapshot(s) { const x = JSON.parse(s); edited = x.edited || {}; added = x.added || []; shapes = x.shapes || []; images = x.images || []; additionOrder = Number(x.additionOrder) || 0; }
     function nextAdditionOrder() { return additionOrder++; }
     let _idCounter = 0;
-    function uniqueId(prefix) { if (typeof crypto !== 'undefined' && crypto.randomUUID) return prefix + crypto.randomUUID().replace(/-/g, '').slice(0, 12); _idCounter++; return prefix + Date.now().toString(36) + '_' + _idCounter; }
+    function uniqueId(prefix) { if (crypto?.randomUUID) return prefix + crypto.randomUUID().replace(/-/g, '').slice(0, 12); return prefix + Date.now().toString(36) + '_' + (++_idCounter); }
     function additionItemsOnPage() { return [...added, ...shapes, ...images].filter(x => x.page === currentPage).sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0)); }
     function commit(before) { const after = snapshot(); if (before !== after) { history.push(before); future = []; } updateStats(); }
     async function applyHistory(s) { restoreSnapshot(s); selected = null; await refreshPreview('Updating preview…'); }
@@ -547,6 +447,25 @@
     uploadArea.ondragleave = () => uploadArea.classList.remove('drag-over');
     uploadArea.ondrop = e => { e.preventDefault(); uploadArea.classList.remove('drag-over'); e.dataTransfer.files[0] && loadPDF(e.dataTransfer.files[0]); };
 
+    // --- Reset logic for New Document ---
+    document.getElementById('newDocBtn').onclick = () => {
+      pdfData = null; displayPdfData = null; pages = []; currentPage = 1;
+      edited = {}; added = []; shapes = []; images = []; selected = null; history = []; future = []; additionOrder = 1;
+      viewer = null; overlay = null; pageImageUrl = null;
+      
+      document.getElementById('uploadArea').style.display = 'block';
+      document.getElementById('toolbar').hidden = true;
+      document.getElementById('tools').hidden = true;
+      document.getElementById('newDocBtn').style.display = 'none';
+      fileInput.value = '';
+      
+      document.getElementById('viewerWrap').innerHTML = `
+        <div class="empty-state" onclick="document.getElementById('fileInput').click()">
+          <span class="icon">📄</span>
+          <p>Upload a PDF to get started</p>
+        </div>`;
+    };
+
     async function loadPDF(file) {
       const fd = new FormData(); fd.append('file', file);
       try {
@@ -557,7 +476,10 @@
         edited = {}; added = []; shapes = []; images = []; selected = null; history = []; future = []; additionOrder = 1; currentPage = 1;
         $('pageCount').textContent = pages.length; $('pageInput').max = pages.length;
         $('toolbar').hidden = false; $('tools').hidden = false;
-        await renderCurrentPage(); uploadArea.style.display = 'none'; closeSidebar();
+        await renderCurrentPage(); 
+        uploadArea.style.display = 'none'; 
+        $('newDocBtn').style.display = 'block'; // Show the New button
+        closeSidebar();
       } catch (e) { alert(e.message); setStatus(e.message); }
     }
 

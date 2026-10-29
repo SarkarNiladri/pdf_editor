@@ -9,342 +9,74 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #f1f5f9;
-      color: #0f172a;
-      min-height: 100vh;
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      overflow-x: hidden;
-    }
-    .header {
-      height: 64px;
-      background: #ffffff;
-      border-bottom: 1px solid #e2e8f0;
-      display: flex;
-      align-items: center;
-      padding: 0 24px;
-      gap: 20px;
-      flex-shrink: 0;
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
-    .brand-icon {
-      background: #4f46e5;
-      color: #fff;
-      border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 18px;
-    }
-    .nav {
-      display: flex;
-      gap: 4px;
-      margin-left: auto;
-      align-items: center;
-    }
-    .nav button {
-      border: none;
-      background: transparent;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: 600;
-      color: #64748b;
-      cursor: pointer;
-      font-family: inherit;
-      font-size: 14px;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f1f5f9; color: #0f172a; min-height: 100vh; margin: 0; padding: 0; width: 100%; overflow-x: hidden; }
+    .header { height: 64px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; padding: 0 24px; gap: 20px; flex-shrink: 0; }
+    .brand { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+    .brand-icon { background: #4f46e5; color: #fff; border-radius: 8px; padding: 6px 10px; font-size: 18px; }
+    .nav { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+    .nav button { border: none; background: transparent; padding: 8px 16px; border-radius: 8px; font-weight: 600; color: #64748b; cursor: pointer; font-family: inherit; font-size: 14px; transition: all 0.2s; white-space: nowrap; }
     .nav button:hover { background: #f1f5f9; color: #0f172a; }
-    .nav button.active { background: #eef2ff; color: #4f46e5; }
 
-    .wrap {
-      width: 100%;
-      max-width: 100%;
-      margin: 0;
-      padding: 20px 16px;
-    }
-    .hero {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .hero h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
-    .hero p { color: #64748b; font-size: 15px; }
-
-    .converter-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 16px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
-      padding: 20px 16px;
-      width: 100%;
-    }
-
-    .tabs-wrapper {
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 12px;
-      margin-bottom: 18px;
-      overflow-x: auto !important;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
-      width: 100%;
-    }
+    .wrap { width: 100%; max-width: 100%; margin: 0; padding: 20px 16px; }
+    .converter-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05); padding: 20px 16px; width: 100%; }
+    .tabs-wrapper { border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 18px; overflow-x: auto !important; -webkit-overflow-scrolling: touch; scrollbar-width: thin; width: 100%; }
     .tabs-wrapper::-webkit-scrollbar { height: 6px; }
     .tabs-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
-    .tabs {
-      display: flex !important;
-      flex-wrap: nowrap !important;
-      gap: 6px;
-      width: max-content !important;
-      min-width: 100% !important;
-      padding-bottom: 4px;
-    }
-    .tab {
-      padding: 6px 14px;
-      border: 1px solid #e2e8f0;
-      background: #ffffff;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 13px;
-      color: #475569;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-      white-space: nowrap;
-      flex-shrink: 0 !important;
-    }
+    .tabs { display: flex !important; flex-wrap: nowrap !important; gap: 6px; width: max-content !important; min-width: 100% !important; padding-bottom: 4px; }
+    .tab { padding: 6px 14px; border: 1px solid #e2e8f0; background: #ffffff; border-radius: 999px; font-weight: 600; font-size: 13px; color: #475569; cursor: pointer; transition: all 0.2s; font-family: inherit; white-space: nowrap; flex-shrink: 0 !important; }
     .tab:hover { background: #f8fafc; border-color: #cbd5e1; }
     .tab.active { background: #4f46e5; border-color: #4f46e5; color: #fff; }
 
     .panel { display: none; }
     .panel.active { display: block; }
 
-    .drop-zone {
-      border: 2px dashed #cbd5e1;
-      border-radius: 14px;
-      min-height: 180px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 24px 16px;
-      background: #fafbfc;
-      transition: all 0.25s;
-      cursor: pointer;
-    }
+    .drop-zone { border: 2px dashed #cbd5e1; border-radius: 14px; min-height: 180px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px 16px; background: #fafbfc; transition: all 0.25s; cursor: pointer; }
     .drop-zone.drag-over { border-color: #4f46e5; background: #eef2ff; }
     .drop-zone .icon { font-size: 36px; display: block; margin-bottom: 6px; }
     .drop-zone h3 { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
     .drop-zone p { color: #64748b; font-size: 13px; margin-bottom: 12px; }
-    .drop-zone .choose {
-      display: inline-flex;
-      background: #4f46e5;
-      color: #fff;
-      padding: 8px 18px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 13px;
-      cursor: pointer;
-      transition: background 0.2s;
-      border: none;
-    }
+    .drop-zone .choose { display: inline-flex; background: #4f46e5; color: #fff; padding: 8px 18px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; transition: background 0.2s; border: none; }
     .drop-zone .choose:hover { background: #4338ca; }
     .drop-zone input[type="file"] { display: none; }
 
-    .image-options {
-      margin-top: 14px;
-      display: none;
-      flex-direction: column;
-      gap: 12px;
-      padding: 14px 16px;
-      background: #f8fafc;
-      border-radius: 10px;
-      border: 1px solid #e2e8f0;
-    }
+    .image-options { margin-top: 14px; display: none; flex-direction: column; gap: 12px; padding: 14px 16px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; }
     .image-options.visible { display: flex; }
+    .option-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .option-row label { font-weight: 600; font-size: 13px; color: #334155; min-width: 80px; }
+    .option-row input[type="number"], .option-row input[type="text"] { width: 80px; padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; font-family: inherit; }
+    .option-row select { padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; font-family: inherit; background: #fff; }
+    .option-row .checkbox-group { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #334155; }
+    .option-row .checkbox-group input[type="checkbox"] { width: 16px; height: 16px; accent-color: #4f46e5; }
+    .quality-slider, .compress-slider { display: flex; align-items: center; gap: 10px; }
+    .quality-slider input[type="range"], .compress-slider input[type="range"] { width: 120px; accent-color: #4f46e5; }
+    .quality-slider span, .compress-slider span { font-weight: 600; font-size: 14px; min-width: 30px; }
 
-    .option-row {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    .option-row label {
-      font-weight: 600;
-      font-size: 13px;
-      color: #334155;
-      min-width: 80px;
-    }
-    .option-row input[type="number"],
-    .option-row input[type="text"] {
-      width: 80px;
-      padding: 4px 8px;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      font-size: 13px;
-      font-family: inherit;
-    }
-    .option-row input[type="number"]:focus,
-    .option-row input[type="text"]:focus {
-      outline: 2px solid #818cf8;
-      border-color: transparent;
-    }
-    .option-row select {
-      padding: 4px 8px;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      font-size: 13px;
-      font-family: inherit;
-      background: #fff;
-    }
-    .option-row select:focus {
-      outline: 2px solid #818cf8;
-      border-color: transparent;
-    }
-    .option-row .checkbox-group {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      color: #334155;
-    }
-    .option-row .checkbox-group input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      accent-color: #4f46e5;
-    }
-
-    .quality-slider, .compress-slider {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .quality-slider input[type="range"],
-    .compress-slider input[type="range"] {
-      width: 120px;
-      accent-color: #4f46e5;
-    }
-    .quality-slider span, .compress-slider span {
-      font-weight: 600;
-      font-size: 14px;
-      min-width: 30px;
-    }
-
-    .files {
-      margin-top: 14px;
-      display: grid;
-      gap: 6px;
-    }
-    .file-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 12px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 13px;
-    }
+    .files { margin-top: 14px; display: grid; gap: 6px; }
+    .file-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; }
     .file-item .name { font-weight: 500; color: #0f172a; word-break: break-word; }
     .file-item .size { color: #64748b; font-size: 12px; margin-left: 8px; white-space: nowrap; }
 
-    .actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 16px;
-    }
-    .convert-btn {
-      background: #4f46e5;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 20px;
-      font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.2s;
-      font-family: inherit;
-    }
+    .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+    .convert-btn { background: #4f46e5; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 700; font-size: 14px; cursor: pointer; transition: background 0.2s; font-family: inherit; }
     .convert-btn:hover { background: #4338ca; }
     .convert-btn:disabled { opacity: 0.5; pointer-events: none; }
 
-    .status {
-      margin-top: 14px;
-      padding: 10px 14px;
-      border-radius: 8px;
-      background: #f8fafc;
-      color: #475569;
-      font-size: 13px;
-      display: none;
-    }
+    .status { margin-top: 14px; padding: 10px 14px; border-radius: 8px; background: #f8fafc; color: #475569; font-size: 13px; display: none; }
     .status.show { display: block; }
     .status.error { background: #fef2f2; color: #b91c1c; }
     .status.ok { background: #f0fdf4; color: #166534; }
 
-    .note {
-      margin-top: 14px;
-      color: #94a3b8;
-      font-size: 12px;
-      border-top: 1px solid #e2e8f0;
-      padding-top: 12px;
-    }
-    .cap {
-      display: inline-block;
-      margin: 4px 4px 0 0;
-      padding: 4px 10px;
-      background: #f1f5f9;
-      border-radius: 999px;
-      font-size: 11px;
-      color: #475569;
-    }
-
     @media (max-width: 768px) {
       .header { padding: 0 12px; gap: 10px; flex-wrap: wrap; height: auto; min-height: 56px; }
       .brand { font-size: 18px; }
-      .nav {
-        margin-left: 0;
-        width: 100%;
-        justify-content: flex-start;
-        overflow-x: auto;
-        gap: 2px;
-        flex-wrap: nowrap;
-        padding-bottom: 4px;
-        -webkit-overflow-scrolling: touch;
-      }
+      .nav { margin-left: 0; width: 100%; justify-content: flex-start; overflow-x: auto; gap: 2px; flex-wrap: nowrap; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
       .nav button { font-size: 13px; padding: 6px 12px; }
       .wrap { padding: 12px 8px; }
-      .hero h1 { font-size: 22px; }
-      .hero p { font-size: 14px; }
       .converter-card { padding: 14px 12px; border-radius: 12px; }
-      .tabs-wrapper { padding-bottom: 10px; margin-bottom: 14px; }
-      .tab { font-size: 12px; padding: 5px 12px; }
-      .drop-zone { min-height: 150px; padding: 16px; }
-      .drop-zone .icon { font-size: 28px; }
-      .drop-zone h3 { font-size: 15px; }
-      .drop-zone p { font-size: 12px; }
-      .drop-zone .choose { font-size: 12px; padding: 6px 14px; }
-      .file-item { font-size: 12px; padding: 6px 10px; }
+      .option-row { flex-direction: column; align-items: stretch; gap: 6px; }
+      .quality-slider input[type="range"], .compress-slider input[type="range"] { width: 100%; }
       .convert-btn { width: 100%; justify-content: center; padding: 10px 16px; font-size: 13px; }
       .actions { justify-content: stretch; }
-      .note { font-size: 11px; }
-      .option-row { flex-direction: column; align-items: stretch; gap: 6px; }
-      .quality-slider input[type="range"],
-      .compress-slider input[type="range"] { width: 100%; }
-    }
-    @media (max-width: 480px) {
-      .brand { font-size: 16px; }
-      .brand-icon { font-size: 14px; padding: 4px 8px; }
-      .hero h1 { font-size: 18px; }
-      .tab { font-size: 11px; padding: 4px 10px; }
     }
   </style>
 </head>
@@ -352,14 +84,12 @@
   <header class="header">
     <div class="brand"><span class="brand-icon">▣</span> Document Converter</div>
     <nav class="nav">
-      <button class="active" data-nav="converter">Converter</button>
-      <button onclick="if(window.parent!==window){window.parent.postMessage('show-editor','*')}else{window.close()}">⬅ Back to Editor</button>
+      <button class="active">Converter</button>
+      <button onclick="if(window.parent!==window){window.parent.postMessage('show-editor','*')}else{window.close()}">⬅ Back to Home</button>
     </nav>
   </header>
 
   <div class="wrap">
-    <div class="hero"><h1>Convert your documents</h1><p>Choose a conversion, upload your file, and download the result.</p></div>
-
     <section class="converter-card">
       <div class="tabs-wrapper">
         <div class="tabs" id="tabsContainer">
@@ -384,7 +114,6 @@
           </div>
         </div>
 
-        <!-- Image options -->
         <div class="image-options" id="imageOptions">
           <div class="option-row">
             <label for="targetFormat">Format:</label>
@@ -397,8 +126,6 @@
               <option value="tiff">TIFF</option>
             </select>
           </div>
-
-          <!-- Quality slider (visible for JPEG, WebP, GIF) -->
           <div class="option-row" id="qualityRow" style="display: none;">
             <label>Quality:</label>
             <div class="quality-slider">
@@ -406,17 +133,13 @@
               <span id="qualityValue">85</span>
             </div>
           </div>
-
-          <!-- PNG compression slider -->
           <div class="option-row" id="compressRow" style="display: none;">
             <label>Compression:</label>
             <div class="compress-slider">
               <input type="range" id="compressLevel" min="0" max="9" value="6">
               <span id="compressValue">6</span>
             </div>
-            <span style="font-size:11px; color:#64748b;">(0=none, 9=maximum)</span>
           </div>
-
           <div class="option-row">
             <label>Resize:</label>
             <select id="resizeMode">
@@ -425,12 +148,10 @@
               <option value="custom">Custom width/height</option>
             </select>
           </div>
-
           <div class="option-row" id="percentageRow" style="display: none;">
             <label>Percentage:</label>
             <input type="number" id="scalePercent" value="50" min="1" max="500" style="width:80px;"> %
           </div>
-
           <div class="option-row" id="customSizeRow" style="display: none;">
             <label>Width:</label>
             <input type="number" id="customWidth" value="800" min="1" style="width:80px;">
@@ -444,27 +165,18 @@
         </div>
 
         <div class="files" id="fileList"></div>
-
-        <div class="actions">
-          <button class="convert-btn" id="convertBtn" disabled>Convert</button>
-        </div>
-
+        <div class="actions"><button class="convert-btn" id="convertBtn" disabled>Convert</button></div>
         <div class="status" id="status"></div>
-
-        <div class="note" id="note">
-          <span class="cap">📄 PyMuPDF</span>
-          <span class="cap">🖼️ Pillow</span>
-          <span class="cap">📦 pdf2docx</span>
-          <span class="cap">📑 LibreOffice</span>
-        </div>
       </div>
     </section>
   </div>
 
   <script>
+    // Check if a specific tool was requested from the Home grid
     const urlParams = new URLSearchParams(window.location.search);
     const requestedTool = urlParams.get('tool');
     let conversion = requestedTool || 'word-to-pdf', selectedFiles = [];
+    
     const $ = id => document.getElementById(id);
     const specs = {
       'word-to-pdf': { title: 'Upload a Word document', hint: 'DOC, DOCX or ODT • up to 50 MB', accept: '.doc,.docx,.odt', multiple: false, button: 'Convert to PDF', showOptions: false },
@@ -505,46 +217,43 @@
       $('customSizeRow').style.display = mode === 'custom' ? 'flex' : 'none';
     }
 
-    // Show/hide quality/compression sliders based on format
     function updateFormatSliders() {
       const format = $('targetFormat').value;
       const qualityRow = $('qualityRow');
       const compressRow = $('compressRow');
       if (format === 'jpeg' || format === 'webp' || format === 'gif') {
-        qualityRow.style.display = 'flex';
-        compressRow.style.display = 'none';
+        qualityRow.style.display = 'flex'; compressRow.style.display = 'none';
       } else if (format === 'png') {
-        qualityRow.style.display = 'none';
-        compressRow.style.display = 'flex';
+        qualityRow.style.display = 'none'; compressRow.style.display = 'flex';
       } else {
-        // BMP, TIFF – neither
-        qualityRow.style.display = 'none';
-        compressRow.style.display = 'none';
+        qualityRow.style.display = 'none'; compressRow.style.display = 'none';
       }
     }
 
     function configure() {
       const s = specs[conversion];
+      if (!s) return;
       $('dropTitle').textContent = s.title;
       $('dropHint').textContent = s.hint;
       $('files').accept = s.accept;
       $('files').multiple = s.multiple;
       $('convertBtn').textContent = s.button;
       const opt = $('imageOptions');
-      if (s.showOptions) {
-        opt.classList.add('visible');
-        updateFormatSliders();  // show correct slider for initial format
-      } else {
-        opt.classList.remove('visible');
-      }
+      if (s.showOptions) { opt.classList.add('visible'); updateFormatSliders(); }
+      else { opt.classList.remove('visible'); }
       selectedFiles = [];
       renderFiles();
       setStatus('');
       toggleResizeOptions();
     }
 
-    // Event listeners
+    // Set active tab based on URL parameter
     document.querySelectorAll('.tab').forEach(b => {
+      if (b.dataset.conversion === conversion) {
+        b.classList.add('active');
+      } else {
+        b.classList.remove('active');
+      }
       b.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
         b.classList.add('active');
@@ -553,63 +262,33 @@
       });
     });
 
-    $('files').addEventListener('change', e => {
-      selectedFiles = [...e.target.files];
-      renderFiles();
-    });
+    $('files').addEventListener('change', e => { selectedFiles = [...e.target.files]; renderFiles(); });
 
     const drop = $('drop');
     drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
     drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
-    drop.addEventListener('drop', e => {
-      e.preventDefault();
-      drop.classList.remove('drag-over');
-      selectedFiles = [...e.dataTransfer.files];
-      renderFiles();
-    });
+    drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('drag-over'); selectedFiles = [...e.dataTransfer.files]; renderFiles(); });
 
-    // Quality slider update
-    $('quality').addEventListener('input', function() {
-      $('qualityValue').textContent = this.value;
-    });
-
-    // PNG compression slider update
-    $('compressLevel').addEventListener('input', function() {
-      $('compressValue').textContent = this.value;
-    });
-
-    // Format change – show correct slider
+    $('quality').addEventListener('input', function() { $('qualityValue').textContent = this.value; });
+    $('compressLevel').addEventListener('input', function() { $('compressValue').textContent = this.value; });
     $('targetFormat').addEventListener('change', updateFormatSliders);
-
-    // Resize mode change
     $('resizeMode').addEventListener('change', toggleResizeOptions);
 
-    // Convert button
     $('convertBtn').addEventListener('click', async () => {
       const s = specs[conversion];
       if (!selectedFiles.length) return;
-      if (conversion === 'merge-pdf' && selectedFiles.length < 2) {
-        setStatus('Select at least two PDFs.', 'error');
-        return;
-      }
+      if (conversion === 'merge-pdf' && selectedFiles.length < 2) { setStatus('Select at least two PDFs.', 'error'); return; }
       const form = new FormData();
       form.append('conversion', conversion);
       selectedFiles.forEach(f => form.append('files', f));
 
       if (conversion === 'image-to-image') {
         form.append('target_format', $('targetFormat').value);
-        // Add quality if visible
-        if ($('qualityRow').style.display !== 'none') {
-          form.append('quality', $('quality').value);
-        }
-        // Add PNG compression if visible
-        if ($('compressRow').style.display !== 'none') {
-          form.append('compress_level', $('compressLevel').value);
-        }
+        if ($('qualityRow').style.display !== 'none') form.append('quality', $('quality').value);
+        if ($('compressRow').style.display !== 'none') form.append('compress_level', $('compressLevel').value);
         form.append('resize_mode', $('resizeMode').value);
-        if ($('resizeMode').value === 'percentage') {
-          form.append('scale_percent', $('scalePercent').value);
-        } else if ($('resizeMode').value === 'custom') {
+        if ($('resizeMode').value === 'percentage') form.append('scale_percent', $('scalePercent').value);
+        else if ($('resizeMode').value === 'custom') {
           form.append('width', $('customWidth').value);
           form.append('height', $('customHeight').value);
           form.append('keep_aspect', $('keepAspect').checked ? 'true' : 'false');
@@ -617,39 +296,23 @@
       }
 
       const btn = $('convertBtn');
-      btn.disabled = true;
-      setStatus('Converting…');
-
+      btn.disabled = true; setStatus('Converting…');
       try {
         const res = await fetch('/api/convert', { method: 'POST', body: form });
-        if (!res.ok) {
-          let msg = 'Conversion failed.';
-          try { msg = (await res.json()).error || msg; } catch {}
-          throw new Error(msg);
-        }
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
+        if (!res.ok) { let msg = 'Conversion failed.'; try { msg = (await res.json()).error || msg; } catch {} throw new Error(msg); }
+        const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url;
         let filename = 'converted';
         if (conversion === 'pdf-to-images') filename = 'images.zip';
         else if (conversion === 'pdf-to-word') filename = 'converted.docx';
         else if (conversion === 'merge-pdf') filename = 'merged.pdf';
-        else if (conversion === 'image-to-image') {
-          const ext = $('targetFormat').value;
-          filename = `converted.${ext === 'jpeg' ? 'jpg' : ext}`;
-        } else {
-          filename = 'converted.pdf';
-        }
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
+        else if (conversion === 'image-to-image') { const ext = $('targetFormat').value; filename = `converted.${ext === 'jpeg' ? 'jpg' : ext}`; }
+        else { filename = 'converted.pdf'; }
+        a.download = filename; a.click(); URL.revokeObjectURL(url);
         setStatus('Conversion completed. Download started.', 'ok');
       } catch (err) {
         setStatus(err.message, 'error');
       } finally {
-        btn.disabled = false;
-        renderFiles();
+        btn.disabled = false; renderFiles();
       }
     });
 
