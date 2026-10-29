@@ -8,6 +8,29 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
   <style>
+        /* AI Resume Tailor Mobile Responsiveness */
+    @media (max-width: 900px) {
+      .tailor-grid {
+        grid-template-columns: 1fr !important; /* Stacks columns vertically */
+        gap: 16px !important;
+      }
+      
+      #tailorView {
+        padding: 12px !important;
+      }
+      
+      /* Ensure the PDF preview iframe has height on mobile */
+      #pdfPreviewIframe {
+        min-height: 450px;
+      }
+      
+      /* Make sure the download button and title wrap nicely */
+      .preview-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 10px;
+      }
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -460,20 +483,24 @@
 
     <!-- AI Resume Tailor View -->
       
-  <div class="app-view" id="tailorView" style="display: none; padding: 20px; background: #f8fafc; height: calc(100vh - 56px); overflow-y: auto;">
-    
-    <!-- Header -->
-    <div style="max-width: 1200px; margin: 0 auto 20px auto;">
-      <h2 style="font-size: 24px; font-weight: 700; color: #0f172a;">✨ AI Resume Tailor</h2>
-      <p style="color: #64748b; font-size: 14px;">Upload your resume, add the JD, and let AI optimize your resume for the ATS.</p>
-    </div>
+  
 
     <!-- Two Column Layout -->
+    <div class="tailor-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto;"></div>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto;">
       
       <!-- Left Column: Inputs -->
       <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); height: fit-content;">
         
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; font-weight: 600; font-size: 14px; margin-bottom: 8px;"> div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); height: fit-content;">
+        
+        <!-- ADD THIS INSIDE THE CARD -->
+        <div style="margin-bottom: 24px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px;">
+          <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">Optimize for ATS</h3>
+          <p style="color: #64748b; font-size: 13px;">Upload your resume and JD. AI will rewrite your experience to match the role.</p>
+        </div>
+
         <div style="margin-bottom: 20px;">
           <label style="display: block; font-weight: 600; font-size: 14px; margin-bottom: 8px;">1. Upload Current Resume (PDF or DOCX)</label>
           <input type="file" id="tailorResumeFile" accept=".pdf,.docx" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc;">
