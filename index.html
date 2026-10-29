@@ -114,8 +114,11 @@
     .modal-actions .btn-danger { margin-right: auto; }
 
     @media (max-width: 900px) { .tailor-grid { grid-template-columns: 1fr !important; } }
-    .converter-view { display: none; width: 100%; height: 100%; border: 0; }
-    .converter-view.active { display: block; }
+    
+    /* FIXED IFRAME CSS */
+    #converterView { display: none; width: 100%; height: 100%; padding: 0; }
+    #converterView.active { display: flex; }
+    #converterIframe { width: 100%; height: 100%; border: 0; display: block; }
   </style>
 </head>
 <body>
@@ -159,7 +162,6 @@
       <aside class="sidebar" id="sidebar">
         <button class="sidebar-close" id="sidebarClose">✕</button>
         
-        <!-- ADDED: New Document Button -->
         <div class="sidebar-title" style="display:flex; justify-content:space-between; width:100%; align-items:center;">
           <span>📄 PDF Editor</span>
           <button class="btn btn-ghost" id="newDocBtn" style="display:none; padding:4px 8px; min-height:auto; font-size:12px; border:1px solid #e2e8f0; cursor:pointer;">➕ New</button>
@@ -233,8 +235,8 @@
   </div>
 
   <!-- ==================== CONVERTER VIEW ==================== -->
-  <div class="app-view" id="converterView" style="padding:0;">
-    <iframe id="converterIframe" class="converter-view" title="Document Converter" src="about:blank"></iframe>
+  <div class="app-view" id="converterView">
+    <iframe id="converterIframe" title="Document Converter" src="about:blank"></iframe>
   </div>
 
   <!-- ==================== AI TAILOR VIEW ==================== -->
@@ -396,7 +398,11 @@
       document.getElementById('editorView').classList.add('active');
       document.getElementById('sidebar').classList.add('open');
     }
-
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      if (backdrop) backdrop.classList.remove('active');
+    }
     function showConverter(toolName) {
       hideAllViews();
       document.getElementById('converterView').classList.add('active');
