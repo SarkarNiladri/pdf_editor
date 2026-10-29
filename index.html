@@ -31,12 +31,12 @@
     .app-view { display: none; flex: 1; height: calc(100vh - 64px); position: relative; overflow: hidden; }
     .app-view.active { display: flex; }
 
-    #homeView { background: #f8fafc; overflow-y: auto; padding: 40px 20px; justify-content: center; }
+    #homeView { background: #f8fafc; overflow-y: auto; padding: 40px 20px 80px 20px; justify-content: center; }
     .home-container { max-width: 1200px; width: 100%; margin: 0 auto; }
     .home-header { text-align: center; margin-bottom: 40px; }
     .home-header h1 { font-size: 32px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.5px; }
     .home-header p { color: #64748b; font-size: 16px; }
-    .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding-bottom: 80px;  }
     .tool-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; gap: 16px; }
     .tool-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); border-color: #cbd5e1; }
     .tool-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
