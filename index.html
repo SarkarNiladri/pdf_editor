@@ -64,11 +64,6 @@
       .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 25; top: 64px; }
       .sidebar-backdrop.active { display: block; }
     }
-    .info-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.6; }
-    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; margin-top: 6px; }
-    .stat-item { display: flex; justify-content: space-between; font-size: 13px; }
-    .stat-item .label { color: #64748b; }
-    .stat-item .value { font-weight: 600; color: #0f172a; }
     .tool-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-top: 4px; }
     .tool-grid-sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     
@@ -162,15 +157,6 @@
         </div>
 
         <div id="tools" hidden style="display:flex; flex-direction:column; gap:14px;">
-          <div class="info-card">
-            <div style="display:flex; justify-content:space-between; font-weight:600; margin-bottom:4px;"><span>📊 Document stats</span></div>
-            <div class="stat-grid">
-              <div class="stat-item"><span class="label">New texts</span> <span class="value" id="newCount">0</span></div>
-              <div class="stat-item"><span class="label">Shapes</span> <span class="value" id="shapeCount">0</span></div>
-              <div class="stat-item"><span class="label">Images</span> <span class="value" id="imageCount">0</span></div>
-            </div>
-          </div>
-
           <div class="tool-section-title">🛠️ Tools</div>
           <div class="tool-grid-sidebar">
             <button class="btn btn-primary" id="addTextBtn">✏️ Add Text</button>
@@ -391,7 +377,12 @@
     async function undo() { if (!history.length) return; future.push(snapshot()); restoreSnapshot(history.pop()); selected = null; await refreshPreview(); }
     async function redo() { if (!future.length) return; history.push(snapshot()); restoreSnapshot(future.pop()); selected = null; await refreshPreview(); }
     function setStatus(t) { $('status').textContent = t || ''; }
-    function updateStats() { $('newCount').textContent = added.length; $('shapeCount').textContent = shapes.length; $('imageCount').textContent = images.length; $('undoBtn').disabled = !history.length; $('redoBtn').disabled = !future.length; }
+    
+    // Updated Stats (No longer references the deleted HTML elements)
+    function updateStats() { 
+      $('undoBtn').disabled = !history.length; 
+      $('redoBtn').disabled = !future.length; 
+    }
 
     const uploadArea = $('uploadArea'), fileInput = $('fileInput'), viewerWrap = $('viewerWrap');
     uploadArea.onclick = () => fileInput.click();
@@ -524,6 +515,11 @@
       $('editText').value = item.text; $('fontSize').value = item.fontSize; $('color').value = item.color; $('fontFamily').value = item.font;
       $('modalDelete').style.display = 'block'; $('modal').classList.add('open'); $('editText').focus();
     }
+
+    // TOOL CANCEL BUTTONS FIX
+    $('shapeCancel').onclick = () => { $('shapeModal').classList.remove('open'); };
+    $('modalCancel').onclick = () => { $('modal').classList.remove('open'); };
+    $('imageCancel').onclick = () => { $('imageModal').classList.remove('open'); imagePending = null; };
 
     $('addTextBtn').onclick = () => {
       selected = null; modalMode = 'add';
