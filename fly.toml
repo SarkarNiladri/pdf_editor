@@ -1,0 +1,20 @@
+app = "your-app-name" # You can choose your own unique name
+primary_region = "sin" # Choose a region close to you (e.g., "sin" for Singapore, "bom" for Mumbai)
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  # Non-secret environment variables can go here
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "suspend" # Use "suspend" for the fastest wake-up
+  auto_start_machines = true
+  min_machines_running = 0 # Set to 1 if you want to avoid cold starts entirely
+
+[[vm]]
+  memory = "1gb" # At least 1GB is recommended for LibreOffice
+  cpu_kind = "shared"
+  cpus = 1
