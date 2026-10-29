@@ -1,20 +1,23 @@
-app = "your-app-name" # You can choose your own unique name
-primary_region = "sin" # Choose a region close to you (e.g., "sin" for Singapore, "bom" for Mumbai)
+# fly.toml app configuration file generated for pdf-editor-6vcbdw
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'pdf-editor-6vcbdw'
+primary_region = 'sin'
 
 [build]
   dockerfile = "Dockerfile"
 
-[env]
-  # Non-secret environment variables can go here
-
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = "suspend" # Use "suspend" for the fastest wake-up
+  auto_stop_machines = "suspend"
   auto_start_machines = true
-  min_machines_running = 0 # Set to 1 if you want to avoid cold starts entirely
+  min_machines_running = 0
+  processes = ['app']
 
 [[vm]]
-  memory = "1gb" # At least 1GB is recommended for LibreOffice
+  memory = "1gb"
   cpu_kind = "shared"
   cpus = 1
