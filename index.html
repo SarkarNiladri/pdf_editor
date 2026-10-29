@@ -459,26 +459,67 @@
   <iframe class="converter-view" id="converterView" title="Document Converter" src="/converter"></iframe>
 
     <!-- AI Resume Tailor View -->
-  <div class="app-view" id="tailorView" style="display: none; padding: 40px 20px; justify-content: center; background: #f8fafc; height: calc(100vh - 56px); overflow-y: auto;">
-    <div style="max-width: 800px; width: 100%; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
-      <h2 style="margin-bottom: 20px; font-size: 24px; font-weight: 700; color: #0f172a;">✨ Tailor Your Resume</h2>
-      <p style="color: #64748b; margin-bottom: 24px; font-size: 14px;">Upload your current resume and paste the Job Description. The AI will rewrite your resume to match the JD and generate a clean PDF.</p>
       
-      <div style="display: flex; flex-direction: column; gap: 20px;">
-        <div>
+  <div class="app-view" id="tailorView" style="display: none; padding: 20px; background: #f8fafc; height: calc(100vh - 56px); overflow-y: auto;">
+    
+    <!-- Header -->
+    <div style="max-width: 1200px; margin: 0 auto 20px auto;">
+      <h2 style="font-size: 24px; font-weight: 700; color: #0f172a;">✨ AI Resume Tailor</h2>
+      <p style="color: #64748b; font-size: 14px;">Upload your resume, add the JD, and let AI optimize your resume for the ATS.</p>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto;">
+      
+      <!-- Left Column: Inputs -->
+      <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); height: fit-content;">
+        
+        <div style="margin-bottom: 20px;">
           <label style="display: block; font-weight: 600; font-size: 14px; margin-bottom: 8px;">1. Upload Current Resume (PDF or DOCX)</label>
           <input type="file" id="tailorResumeFile" accept=".pdf,.docx" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc;">
         </div>
         
-        <div>
-          <label style="display: block; font-weight: 600; font-size: 14px; margin-bottom: 8px;">2. Paste Job Description (JD)</label>
-          <textarea id="tailorJdText" rows="8" placeholder="Paste the job description here..." style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; font-weight: 600; font-size: 14px; margin-bottom: 8px;">2. Job Description (Paste or Upload)</label>
+          
+          <!-- JD Upload -->
+          <input type="file" id="tailorJdFile" accept=".pdf,.docx,.txt" style="width: 100%; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; margin-bottom: 10px;">
+          <div style="text-align: center; color: #94a3b8; font-size: 12px; margin-bottom: 10px;">— OR —</div>
+          
+          <!-- JD Textarea -->
+          <textarea id="tailorJdText" rows="6" placeholder="Paste the job description here..." style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
         </div>
 
-        <button class="btn btn-primary" id="generateTailoredBtn" style="padding: 12px; font-size: 16px; justify-content: center;">🪄 Generate Tailored Resume</button>
+        <button class="btn btn-primary" id="generateTailoredBtn" style="width: 100%; padding: 12px; font-size: 16px; justify-content: center;">🪄 Generate Optimized Resume</button>
+        <div id="tailorStatus" style="margin-top: 15px; font-size: 14px; text-align: center; font-weight: 600;"></div>
       </div>
-      
-      <div id="tailorStatus" style="margin-top: 20px; font-size: 14px; text-align: center; color: #4f46e5; font-weight: 600;"></div>
+
+      <!-- Right Column: Results Preview -->
+      <div id="tailorResultArea" style="display: none; flex-direction: column; gap: 16px;">
+        
+        <!-- Match Score Card -->
+        <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-weight: 700; font-size: 16px;">ATS Match Score</span>
+            <span id="matchScoreText" style="font-size: 24px; font-weight: 800; color: #4f46e5;">0%</span>
+          </div>
+          <div style="width: 100%; height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
+            <div id="matchScoreBar" style="height: 100%; width: 0%; background: #4f46e5; border-radius: 999px; transition: width 1s ease-in-out;"></div>
+          </div>
+          <div id="matchDetails" style="margin-top: 12px; font-size: 13px; color: #64748b;"></div>
+        </div>
+
+        <!-- Live Preview -->
+        <div style="background: white; padding: 16px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); flex: 1; min-height: 500px; display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-weight: 600; font-size: 14px;">PDF Preview</span>
+            <a id="downloadTailoredBtn" class="btn btn-success" style="display: none;" download="Tailored_Resume.pdf">⬇️ Download PDF</a>
+          </div>
+          <iframe id="pdfPreviewIframe" style="width: 100%; flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; display: none; background: #f8fafc;"></iframe>
+          <div id="previewPlaceholder" style="flex: 1; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 14px;">Generated PDF will appear here</div>
+        </div>
+
+      </div>
     </div>
   </div>
   <!-- Modals -->
@@ -1731,23 +1772,35 @@
     };
 
     // Generate logic
-    generateTailoredBtn.onclick = async () => {
+        generateTailoredBtn.onclick = async () => {
       const file = document.getElementById('tailorResumeFile').files[0];
-      const jd = document.getElementById('tailorJdText').value;
+      const jdText = document.getElementById('tailorJdText').value;
+      const jdFile = document.getElementById('tailorJdFile').files[0];
 
-      if (!file || !jd.trim()) {
-        alert('Please upload a resume and paste the Job Description.');
+      if (!file) {
+        alert('Please upload your resume.');
+        return;
+      }
+      if (!jdText.trim() && !jdFile) {
+        alert('Please paste or upload the Job Description.');
         return;
       }
 
       const formData = new FormData();
       formData.append('resume', file);
-      formData.append('jd', jd);
+      if (jdText) formData.append('jd', jdText);
+      if (jdFile) formData.append('jd_file', jdFile);
 
       generateTailoredBtn.disabled = true;
-      generateTailoredBtn.textContent = '⏳ Generating (this takes ~15 seconds)...';
-      tailorStatus.textContent = 'Extracting text and calling AI...';
+      generateTailoredBtn.textContent = '⏳ Analyzing & Rewriting...';
+      tailorStatus.textContent = 'Calling AI and generating PDF...';
       tailorStatus.style.color = '#4f46e5';
+      
+      // Hide previous results
+      document.getElementById('tailorResultArea').style.display = 'none';
+      document.getElementById('pdfPreviewIframe').style.display = 'none';
+      document.getElementById('downloadTailoredBtn').style.display = 'none';
+      document.getElementById('previewPlaceholder').style.display = 'flex';
 
       try {
         const res = await fetch('/api/tailor-resume', {
@@ -1760,24 +1813,53 @@
           throw new Error(err.error || 'Failed to generate');
         }
 
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'Tailored_Resume.pdf';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
+        const data = await res.json();
+        
+        // 1. Show Result Area
+        document.getElementById('tailorResultArea').style.display = 'flex';
 
-        tailorStatus.textContent = '✅ Success! Your tailored resume has been downloaded.';
+        // 2. Animate Match Score
+        const score = data.match_score;
+        const scoreBar = document.getElementById('matchScoreBar');
+        const scoreText = document.getElementById('matchScoreText');
+        
+        scoreText.textContent = score + '%';
+        scoreBar.style.width = score + '%';
+        
+        // Color code the bar
+        if (score >= 80) scoreBar.style.background = '#059669'; // Green
+        else if (score >= 60) scoreBar.style.background = '#d97706'; // Yellow
+        else scoreBar.style.background = '#dc2626'; // Red
+
+        // Show missing keywords
+        if (data.missing_keywords && data.missing_keywords.length > 0) {
+            document.getElementById('matchDetails').innerHTML = `<strong>Consider adding:</strong> ${data.missing_keywords.slice(0, 5).join(', ')}`;
+        }
+
+        // 3. Generate PDF Preview
+        const pdfBytes = Uint8Array.from(atob(data.pdf_b64), c => c.charCodeAt(0));
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+
+        const iframe = document.getElementById('pdfPreviewIframe');
+        iframe.src = url;
+        iframe.style.display = 'block';
+        document.getElementById('previewPlaceholder').style.display = 'none';
+
+        // 4. Setup Download Button
+        const dlBtn = document.getElementById('downloadTailoredBtn');
+        dlBtn.href = url;
+        dlBtn.style.display = 'inline-flex';
+
+        tailorStatus.textContent = '✅ Success! Preview generated.';
         tailorStatus.style.color = '#059669';
+
       } catch (err) {
         tailorStatus.textContent = '❌ ' + err.message;
         tailorStatus.style.color = '#dc2626';
       } finally {
         generateTailoredBtn.disabled = false;
-        generateTailoredBtn.textContent = '🪄 Generate Tailored Resume';
+        generateTailoredBtn.textContent = '🪄 Generate Optimized Resume';
       }
     };
   </script>
