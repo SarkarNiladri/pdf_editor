@@ -691,6 +691,82 @@ def converter_convert():
     finally:
         shutil.rmtree(work_dir, ignore_errors=True)
 
+# ---------- AI Resume Tailor ----------
+@app.route('/api/tailor-resume', methods=['POST'])
+def tailor_resume():
+    if 'resume' not in request.files or 'jd' not in request.form:
+        return jsonify({'error': 'Missing resume file or JD text'}), 400
+
+    file = request.files['resume']
+    jd_text = request.form['jd']
+    
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
+        return jsonify({'error': 'OpenAI API key not configured'}), 500
+
+    try:
+        # 1. Extract text from the uploaded resume
+        resume_text = extract_text_from_file(file)
+        
+        # 2. Call OpenAI to tailor the resume
+        client = openai.OpenAI(api_key=api_key)
+        prompt = f"""
+        You are an expert resume writer. I will provide you with a candidate's current resume and a Job Description (JD).
+        Your task is to rewrite the resume to better match the JD.
+        - Keep all facts and dates accurate.
+        - Emphasize skills and experiences that match the JD.
+        - Output the result in clean, simple HTML format (use <h1>, <h2>, <ul>, <li>, <p>, <strong> tags only).
+        - Do NOT include <html>, <head>, or <body> tags. Just the content.
+        - Use inline CSS for styling if necessary, but keep it minimal (e.g., <h1 style="font-size: 24px;">).
+
+        Job Description:
+        {jd_text}
+
+        Current Resume:
+        {resume_text}
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7
+        )
+        tailored_html = response.choices[0].message.content.strip()
+
+        # Clean up potential markdown code blocks from AI response
+        if tailored_html.startswith("```html"):
+            tailored_html = tailored_html[7:]
+        if tailored_html.endswith("```"):
+            tailored_html = tailored_html[:-3]
+
+        # 3. Generate a new PDF using PyMuPDF
+        doc = fitz.open()
+        page = doc.new_page()
+        
+        # Define a margin (50 points)
+        rect = fitz.Rect(50, 50, page.rect.width - 50, page.rect.height - 50)
+        
+        # Insert the HTML into the PDF page
+        page.insert_htmlbox(rect, tailored_html)
+        
+        # Save to a BytesIO object to send directly to the user
+        pdf_bytes = doc.write()
+        doc.close()
+
+        return send_file(
+            io.BytesIO(pdf_bytes),
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name='Tailored_Resume.pdf'
+        )
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Failed to tailor resume: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=False)

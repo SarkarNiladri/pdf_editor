@@ -370,6 +370,7 @@
   <div class="app-tabs" id="appTabs">
     <button class="app-tab active" id="editorTab" type="button">📄 PDF Editor</button>
     <button class="app-tab" id="converterTab" type="button">🔄 Converter</button>
+    <button class="app-tab" id="tailorTab" type="button">✨ AI Resume Tailor</button> <!-- NEW TAB -->
     <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">☰</button>
   </div>
 
@@ -457,6 +458,29 @@
 
   <iframe class="converter-view" id="converterView" title="Document Converter" src="/converter"></iframe>
 
+    <!-- AI Resume Tailor View -->
+  <div class="app-view" id="tailorView" style="display: none; padding: 40px 20px; justify-content: center; background: #f8fafc; height: calc(100vh - 56px); overflow-y: auto;">
+    <div style="max-width: 800px; width: 100%; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+      <h2 style="margin-bottom: 20px; font-size: 24px; font-weight: 700; color: #0f172a;">✨ Tailor Your Resume</h2>
+      <p style="color: #64748b; margin-bottom: 24px; font-size: 14px;">Upload your current resume and paste the Job Description. The AI will rewrite your resume to match the JD and generate a clean PDF.</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div>
+          <label style="display: block; font-weight: 600; font-size: 14px; margin-bottom: 8px;">1. Upload Current Resume (PDF or DOCX)</label>
+          <input type="file" id="tailorResumeFile" accept=".pdf,.docx" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc;">
+        </div>
+        
+        <div>
+          <label style="display: block; font-weight: 600; font-size: 14px; margin-bottom: 8px;">2. Paste Job Description (JD)</label>
+          <textarea id="tailorJdText" rows="8" placeholder="Paste the job description here..." style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
+        </div>
+
+        <button class="btn btn-primary" id="generateTailoredBtn" style="padding: 12px; font-size: 16px; justify-content: center;">🪄 Generate Tailored Resume</button>
+      </div>
+      
+      <div id="tailorStatus" style="margin-top: 20px; font-size: 14px; text-align: center; color: #4f46e5; font-weight: 600;"></div>
+    </div>
+  </div>
   <!-- Modals -->
   <div class="modal" id="shapeModal">
     <div class="modal-dialog">
@@ -1675,6 +1699,87 @@
 
       setAtsStatus('Analysis complete.', 'ok');
     }
+
+        // ==================== AI RESUME TAILOR ====================
+    const tailorTab = document.getElementById('tailorTab');
+    const tailorView = document.getElementById('tailorView');
+    const generateTailoredBtn = document.getElementById('generateTailoredBtn');
+    const tailorStatus = document.getElementById('tailorStatus');
+
+    // Tab switching logic
+    function showTailorTab() {
+      tailorTab.classList.add('active');
+      editorTab.classList.remove('active');
+      converterTab.classList.remove('active');
+      editorView.style.display = 'none';
+      converterView.classList.remove('active');
+      tailorView.style.display = 'flex';
+      closeSidebar();
+    }
+    tailorTab.onclick = showTailorTab;
+
+    // Update existing tab functions to hide the tailor view
+    const originalShowEditor = showEditorTab;
+    showEditorTab = function() {
+        originalShowEditor();
+        tailorView.style.display = 'none';
+    };
+    const originalShowConverter = showConverterTab;
+    showConverterTab = function() {
+        originalShowConverter();
+        tailorView.style.display = 'none';
+    };
+
+    // Generate logic
+    generateTailoredBtn.onclick = async () => {
+      const file = document.getElementById('tailorResumeFile').files[0];
+      const jd = document.getElementById('tailorJdText').value;
+
+      if (!file || !jd.trim()) {
+        alert('Please upload a resume and paste the Job Description.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('resume', file);
+      formData.append('jd', jd);
+
+      generateTailoredBtn.disabled = true;
+      generateTailoredBtn.textContent = '⏳ Generating (this takes ~15 seconds)...';
+      tailorStatus.textContent = 'Extracting text and calling AI...';
+      tailorStatus.style.color = '#4f46e5';
+
+      try {
+        const res = await fetch('/api/tailor-resume', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Failed to generate');
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Tailored_Resume.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        tailorStatus.textContent = '✅ Success! Your tailored resume has been downloaded.';
+        tailorStatus.style.color = '#059669';
+      } catch (err) {
+        tailorStatus.textContent = '❌ ' + err.message;
+        tailorStatus.style.color = '#dc2626';
+      } finally {
+        generateTailoredBtn.disabled = false;
+        generateTailoredBtn.textContent = '🪄 Generate Tailored Resume';
+      }
+    };
   </script>
 </body>
 </html>
