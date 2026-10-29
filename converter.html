@@ -462,7 +462,9 @@
   </div>
 
   <script>
-    let conversion = 'word-to-pdf', selectedFiles = [];
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedTool = urlParams.get('tool');
+    let conversion = requestedTool || 'word-to-pdf', selectedFiles = [];
     const $ = id => document.getElementById(id);
     const specs = {
       'word-to-pdf': { title: 'Upload a Word document', hint: 'DOC, DOCX or ODT • up to 50 MB', accept: '.doc,.docx,.odt', multiple: false, button: 'Convert to PDF', showOptions: false },
