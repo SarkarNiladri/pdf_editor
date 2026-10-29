@@ -447,13 +447,16 @@
         </div>
 
         <!-- Live Preview -->
-        <div style="background: white; padding: 16px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); flex: 1; min-height: 500px; display: flex; flex-direction: column;">
+        <div style="background: white; padding: 16px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); flex: 1; display: flex; flex-direction: column;">
           <div class="preview-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <span style="font-weight: 600; font-size: 14px;">PDF Preview</span>
             <a id="downloadTailoredBtn" class="btn btn-success" style="display: none;" download="Tailored_Resume.pdf">⬇️ Download PDF</a>
           </div>
-          <iframe id="pdfPreviewIframe" style="width: 100%; flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; display: none; background: #f8fafc;"></iframe>
-          <div id="previewPlaceholder" style="flex: 1; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 14px;">Generated PDF will appear here</div>
+          
+          <!-- REPLACED IFRAME WITH IMG -->
+          <img id="pdfPreviewImg" style="width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; display: none; background: #f8fafc; object-fit: contain;" />
+          
+          <div id="previewPlaceholder" style="flex: 1; min-height: 400px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 14px;">Generated PDF will appear here</div>
         </div>
 
       </div>
@@ -1269,35 +1272,13 @@
     const tailorStatus = document.getElementById('tailorStatus');
 
     generateTailoredBtn.onclick = async () => {
-      const file = document.getElementById('tailorResumeFile').files[0];
-      const jdText = document.getElementById('tailorJdText').value;
-      const jdFile = document.getElementById('tailorJdFile').files[0];
-
-      if (!file) { alert('Please upload your resume.'); return; }
-      if (!jdText.trim() && !jdFile) { alert('Please paste or upload the Job Description.'); return; }
-
-      const formData = new FormData(); formData.append('resume', file);
-      if (jdText) formData.append('jd', jdText); if (jdFile) formData.append('jd_file', jdFile);
-
-      generateTailoredBtn.disabled = true; generateTailoredBtn.textContent = '⏳ Analyzing & Rewriting...';
-      tailorStatus.textContent = 'Calling AI and generating PDF...'; tailorStatus.style.color = '#4f46e5';
-      
-      document.getElementById('tailorResultArea').style.display = 'none';
-      document.getElementById('pdfPreviewIframe').style.display = 'none';
-      document.getElementById('downloadTailoredBtn').style.display = 'none';
-      document.getElementById('previewPlaceholder').style.display = 'flex';
-
-      try {
-        const res = await fetch('/api/tailor-resume', { method: 'POST', body: formData });
-        if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to generate'); }
-
-        const data = await res.json();
+       const data = await res.json();
         document.getElementById('tailorResultArea').style.display = 'flex';
 
+        // 1. Update Score
         const score = data.match_score;
         const scoreBar = document.getElementById('matchScoreBar');
         const scoreText = document.getElementById('matchScoreText');
-        
         scoreText.textContent = score + '%'; scoreBar.style.width = score + '%';
         if (score >= 80) scoreBar.style.background = '#059669';
         else if (score >= 60) scoreBar.style.background = '#d97706';
@@ -1309,23 +1290,24 @@
             document.getElementById('matchDetails').innerHTML = '';
         }
 
+        // 2. Show the Image Preview (Works on Mobile & Desktop)
+        if (data.preview_img_b64) {
+            const img = document.getElementById('pdfPreviewImg');
+            img.src = `data:image/png;base64,${data.preview_img_b64}`;
+            img.style.display = 'block';
+            document.getElementById('previewPlaceholder').style.display = 'none';
+        }
+
+        // 3. Setup Download Button
         const pdfBytes = Uint8Array.from(atob(data.pdf_b64), c => c.charCodeAt(0));
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
-
-        const iframe = document.getElementById('pdfPreviewIframe');
-        iframe.src = url; iframe.style.display = 'block';
-        document.getElementById('previewPlaceholder').style.display = 'none';
-
+        
         const dlBtn = document.getElementById('downloadTailoredBtn');
-        dlBtn.href = url; dlBtn.style.display = 'inline-flex';
+        dlBtn.href = url; 
+        dlBtn.style.display = 'inline-flex';
 
         tailorStatus.textContent = '✅ Success! Preview generated.'; tailorStatus.style.color = '#059669';
-      } catch (err) {
-        tailorStatus.textContent = '❌ ' + err.message; tailorStatus.style.color = '#dc2626';
-      } finally {
-        generateTailoredBtn.disabled = false; generateTailoredBtn.textContent = '🪄 Generate Optimized Resume';
-      }
     };
   </script>
 </body>

@@ -775,11 +775,18 @@ def tailor_resume():
         # Save to base64
         pdf_bytes = doc.write()
         pdf_b64 = base64.b64encode(pdf_bytes).decode('utf-8')
+
+        # NEW: Generate a PNG preview of the first page
+        pix = doc[0].get_pixmap(matrix=fitz.Matrix(1.5, 1.5))
+        img_bytes = pix.tobytes("png")
+        preview_img_b64 = base64.b64encode(img_bytes).decode('utf-8')
+        
         doc.close()
 
         return jsonify({
             'match_score': match_score,
             'pdf_b64': pdf_b64,
+            'preview_img_b64': preview_img_b64, 
             'missing_keywords': ai_data.get('missing_keywords', []),
             'improvements': ai_data.get('improvements', [])
         })
