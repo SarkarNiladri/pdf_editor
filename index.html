@@ -128,6 +128,12 @@
         <div class="tool-card" onclick="showTailor()"><div class="tool-icon icon-purple">✨</div><h3>AI Resume Tailor</h3><p>Optimize your resume to match a Job Description.</p></div>
         <div class="tool-card" onclick="showSummarize()"><div class="tool-icon icon-purple">🤖</div><h3>Summarize PDF</h3><p>Get a concise summary of any long document.</p></div>
         <div class="tool-card" onclick="showAts()"><div class="tool-icon icon-purple">🧠</div><h3>ATS Compatibility</h3><p>Analyze your resume against Applicant Tracking Systems.</p></div>
+        
+        <!-- NEW CARDS -->
+        <div class="tool-card" onclick="showProtect()"><div class="tool-icon icon-red">🔒</div><h3>Protect PDF</h3><p>Encrypt your PDF with a password to secure it.</p></div>
+        <div class="tool-card" onclick="showUnlock()"><div class="tool-icon icon-green">🔓</div><h3>Unlock PDF</h3><p>Remove password protection from a PDF.</p></div>
+        <!-- END NEW CARDS -->
+
         <div class="tool-card" onclick="showConverter('word-to-pdf')"><div class="tool-icon icon-blue">📄</div><h3>Word to PDF</h3><p>Convert DOC and DOCX to PDF.</p></div>
         <div class="tool-card" onclick="showConverter('pdf-to-word')"><div class="tool-icon icon-blue">📝</div><h3>PDF to Word</h3><p>Convert PDF to DOCX.</p></div>
         <div class="tool-card" onclick="showConverter('excel-to-pdf')"><div class="tool-icon icon-green">📊</div><h3>Excel to PDF</h3><p>Convert spreadsheets to PDF.</p></div>
@@ -204,6 +210,46 @@
   <!-- CONVERTER VIEW -->
   <div class="app-view" id="converterView">
     <iframe id="converterIframe" src="about:blank"></iframe>
+  </div>
+
+  <!-- PROTECT PDF VIEW -->
+  <div class="app-view" id="protectView" style="justify-content:center; overflow-y:auto; padding:40px 20px 80px 20px;">
+    <div class="card-panel" style="max-width:600px; width:100%; height:fit-content;">
+      <h2 style="font-size:24px; font-weight:700; margin-bottom:8px;">🔒 Protect PDF</h2>
+      <p style="color:#64748b; margin-bottom:24px;">Encrypt your PDF file with a password.</p>
+      
+      <div class="upload-zone" id="protectUploadZone" style="margin-bottom:20px;">
+        <span class="icon">📤</span>
+        <p style="font-weight:600; color:#334155;" id="protectFileName">Click to upload a PDF</p>
+        <input type="file" id="protectFileInput" accept=".pdf" style="display:none;">
+      </div>
+      
+      <label style="display:block; font-weight:600; font-size:14px; margin-bottom:8px;">Enter Password</label>
+      <input type="password" id="protectPassword" placeholder="Enter a strong password" style="width:100%; padding:12px; border:1px solid #e2e8f0; border-radius:8px; font-family:inherit; margin-bottom:20px;">
+      
+      <button class="btn btn-primary" id="runProtectBtn" style="width:100%; padding:12px; font-size:16px;" disabled>Encrypt & Download</button>
+      <div id="protectStatus" style="margin-top:15px; text-align:center; font-weight:600;"></div>
+    </div>
+  </div>
+
+  <!-- UNLOCK PDF VIEW -->
+  <div class="app-view" id="unlockView" style="justify-content:center; overflow-y:auto; padding:40px 20px 80px 20px;">
+    <div class="card-panel" style="max-width:600px; width:100%; height:fit-content;">
+      <h2 style="font-size:24px; font-weight:700; margin-bottom:8px;">🔓 Unlock PDF</h2>
+      <p style="color:#64748b; margin-bottom:24px;">Remove password protection from a PDF.</p>
+      
+      <div class="upload-zone" id="unlockUploadZone" style="margin-bottom:20px;">
+        <span class="icon">📤</span>
+        <p style="font-weight:600; color:#334155;" id="unlockFileName">Click to upload an encrypted PDF</p>
+        <input type="file" id="unlockFileInput" accept=".pdf" style="display:none;">
+      </div>
+      
+      <label style="display:block; font-weight:600; font-size:14px; margin-bottom:8px;">Enter Current Password</label>
+      <input type="password" id="unlockPassword" placeholder="Enter the PDF password" style="width:100%; padding:12px; border:1px solid #e2e8f0; border-radius:8px; font-family:inherit; margin-bottom:20px;">
+      
+      <button class="btn btn-primary" id="runUnlockBtn" style="width:100%; padding:12px; font-size:16px;" disabled>Remove Password</button>
+      <div id="unlockStatus" style="margin-top:15px; text-align:center; font-weight:600;"></div>
+    </div>
   </div>
 
   <!-- AI TAILOR VIEW -->
@@ -360,6 +406,8 @@
     function showTailor() { hideAllViews(); document.getElementById('tailorView').classList.add('active'); }
     function showSummarize() { hideAllViews(); document.getElementById('summarizeView').classList.add('active'); }
     function showAts() { hideAllViews(); document.getElementById('atsView').classList.add('active'); }
+    function showProtect() { hideAllViews(); document.getElementById('protectView').classList.add('active'); }
+    function showUnlock() { hideAllViews(); document.getElementById('unlockView').classList.add('active'); }
     function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarBackdrop').classList.remove('active'); }
     
     // Editor State
@@ -377,12 +425,7 @@
     async function undo() { if (!history.length) return; future.push(snapshot()); restoreSnapshot(history.pop()); selected = null; await refreshPreview(); }
     async function redo() { if (!future.length) return; history.push(snapshot()); restoreSnapshot(future.pop()); selected = null; await refreshPreview(); }
     function setStatus(t) { $('status').textContent = t || ''; }
-    
-    // Updated Stats (No longer references the deleted HTML elements)
-    function updateStats() { 
-      $('undoBtn').disabled = !history.length; 
-      $('redoBtn').disabled = !future.length; 
-    }
+    function updateStats() { $('undoBtn').disabled = !history.length; $('redoBtn').disabled = !future.length; }
 
     const uploadArea = $('uploadArea'), fileInput = $('fileInput'), viewerWrap = $('viewerWrap');
     uploadArea.onclick = () => fileInput.click();
@@ -516,7 +559,6 @@
       $('modalDelete').style.display = 'block'; $('modal').classList.add('open'); $('editText').focus();
     }
 
-    // TOOL CANCEL BUTTONS FIX
     $('shapeCancel').onclick = () => { $('shapeModal').classList.remove('open'); };
     $('modalCancel').onclick = () => { $('modal').classList.remove('open'); };
     $('imageCancel').onclick = () => { $('imageModal').classList.remove('open'); imagePending = null; };
@@ -616,7 +658,93 @@
       } catch (e) { alert('Export failed'); } finally { btn.disabled = false; btn.textContent = '⬇️ Download PDF'; }
     };
 
-    // Standalone Summarize Logic
+    // ================= PROTECT PDF LOGIC =================
+    const protectUploadZone = $('protectUploadZone');
+    const protectFileInput = $('protectFileInput');
+    const protectFileName = $('protectFileName');
+    const runProtectBtn = $('runProtectBtn');
+    let protectFile = null;
+
+    protectUploadZone.onclick = () => protectFileInput.click();
+    protectFileInput.onchange = (e) => {
+      protectFile = e.target.files[0];
+      if (protectFile) {
+        protectFileName.textContent = protectFile.name;
+        runProtectBtn.disabled = false;
+      }
+    };
+
+    runProtectBtn.onclick = async () => {
+      const password = $('protectPassword').value;
+      if (!protectFile || !password) return alert('Please select a file and enter a password.');
+      
+      runProtectBtn.disabled = true; runProtectBtn.textContent = 'Encrypting...';
+      $('protectStatus').textContent = '';
+      
+      const fd = new FormData();
+      fd.append('file', protectFile);
+      fd.append('password', password);
+      
+      try {
+        const res = await fetch('/api/protect-pdf', { method: 'POST', body: fd });
+        if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to protect'); }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'protected.pdf'; a.click();
+        $('protectStatus').textContent = '✅ Success! File downloaded.';
+        $('protectStatus').style.color = '#059669';
+      } catch (err) {
+        $('protectStatus').textContent = '❌ ' + err.message;
+        $('protectStatus').style.color = '#dc2626';
+      } finally {
+        runProtectBtn.disabled = false; runProtectBtn.textContent = 'Encrypt & Download';
+      }
+    };
+
+    // ================= UNLOCK PDF LOGIC =================
+    const unlockUploadZone = $('unlockUploadZone');
+    const unlockFileInput = $('unlockFileInput');
+    const unlockFileName = $('unlockFileName');
+    const runUnlockBtn = $('runUnlockBtn');
+    let unlockFile = null;
+
+    unlockUploadZone.onclick = () => unlockFileInput.click();
+    unlockFileInput.onchange = (e) => {
+      unlockFile = e.target.files[0];
+      if (unlockFile) {
+        unlockFileName.textContent = unlockFile.name;
+        runUnlockBtn.disabled = false;
+      }
+    };
+
+    runUnlockBtn.onclick = async () => {
+      const password = $('unlockPassword').value;
+      if (!unlockFile || !password) return alert('Please select a file and enter the password.');
+      
+      runUnlockBtn.disabled = true; runUnlockBtn.textContent = 'Unlocking...';
+      $('unlockStatus').textContent = '';
+      
+      const fd = new FormData();
+      fd.append('file', unlockFile);
+      fd.append('password', password);
+      
+      try {
+        const res = await fetch('/api/unlock-pdf', { method: 'POST', body: fd });
+        if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to unlock'); }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'unlocked.pdf'; a.click();
+        $('unlockStatus').textContent = '✅ Success! File downloaded.';
+        $('unlockStatus').style.color = '#059669';
+      } catch (err) {
+        $('unlockStatus').textContent = '❌ ' + err.message;
+        $('unlockStatus').style.color = '#dc2626';
+      } finally {
+        runUnlockBtn.disabled = false; runUnlockBtn.textContent = 'Remove Password';
+      }
+    };
+
+    // ================= SUMMARIZE LOGIC =================
     const summarizeUploadZone = $('summarizeUploadZone');
     const summarizeFileInput = $('summarizeFileInput');
     const runSummarizeBtn = $('runSummarizeBtn');
@@ -637,7 +765,7 @@
       try { const res = await fetch('/api/summarize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pdf: summarizePdfBase64 }) }); const data = await res.json(); if (!res.ok) throw new Error(data.error); $('summaryResultBox').textContent = data.summary; $('summaryResultBox').style.display = 'block'; $('summaryStatus').textContent = '✅ Summary generated!'; $('summaryStatus').style.color = '#059669'; } catch (err) { $('summaryStatus').textContent = '❌ ' + err.message; $('summaryStatus').style.color = '#dc2626'; } finally { runSummarizeBtn.disabled = false; runSummarizeBtn.textContent = 'Generate Summary'; }
     };
 
-    // Standalone ATS Logic
+    // ================= ATS LOGIC =================
     const atsUploadZone = $('atsUploadZone');
     const atsFileInput = $('atsFileInput');
     atsUploadZone.onclick = () => atsFileInput.click();
@@ -652,7 +780,7 @@
       } catch (err) { $('atsStatus').textContent = '❌ ' + err.message; $('atsStatus').style.color = '#dc2626'; }
     };
 
-    // AI Resume Tailor Logic
+    // ================= AI RESUME TAILOR LOGIC =================
     const generateTailoredBtn = $('generateTailoredBtn');
     generateTailoredBtn.onclick = async () => {
       const file = $('tailorResumeFile').files[0]; const jdText = $('tailorJdText').value; const jdFile = $('tailorJdFile').files[0];

@@ -209,7 +209,53 @@ def edit():
     except Exception as e:
         return jsonify({'error': f'{type(e).__name__}: {e}'}), 500
 
+# ---------- Password Protect & Unlock ----------
+@app.route('/api/protect-pdf', methods=['POST'])
+def protect_pdf():
+    if 'file' not in request.files or 'password' not in request.form:
+        return jsonify({'error': 'Missing file or password'}), 400
+    
+    file = request.files['file']
+    password = request.form['password'].strip()
+    
+    if not password:
+        return jsonify({'error': 'Password cannot be empty'}), 400
+        
+    try:
+        doc = fitz.open(stream=file.read(), filetype='pdf')
+        out = io.BytesIO()
+        # Encrypt with AES-256
+        doc.save(out, encryption=fitz.PDF_ENCRYPT_AES_256, user_pw=password, owner_pw=password)
+        out.seek(0)
+        doc.close()
+        return send_file(out, mimetype='application/pdf', as_attachment=True, download_name='protected.pdf')
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
+@app.route('/api/unlock-pdf', methods=['POST'])
+def unlock_pdf():
+    if 'file' not in request.files or 'password' not in request.form:
+        return jsonify({'error': 'Missing file or password'}), 400
+    
+    file = request.files['file']
+    password = request.form['password']
+    
+    try:
+        # Try to open with the provided password
+        doc = fitz.open(stream=file.read(), filetype='pdf', password=password)
+        
+        # Check if it actually decrypted (if it was encrypted and password is wrong, fitz might open it but deny access to pages)
+        if doc.is_encrypted and not doc.authenticate(password):
+            return jsonify({'error': 'Incorrect password. Cannot unlock.'}), 403
+            
+        out = io.BytesIO()
+        # Save without any encryption
+        doc.save(out, encryption=fitz.PDF_ENCRYPT_NONE)
+        out.seek(0)
+        doc.close()
+        return send_file(out, mimetype='application/pdf', as_attachment=True, download_name='unlocked.pdf')
+    except Exception as e:
+        return jsonify({'error': 'Incorrect password or invalid PDF.'}), 400
 # ---------- Summarization ----------
 def extract_all_text(pdf_bytes):
     doc = fitz.open(stream=pdf_bytes, filetype='pdf')
