@@ -233,30 +233,38 @@ def protect_pdf():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/unlock-pdf', methods=['POST'])
+
 def unlock_pdf():
     if 'file' not in request.files or 'password' not in request.form:
         return jsonify({'error': 'Missing file or password'}), 400
     
     file = request.files['file']
-    password = request.form['password']
+    password = request.form['password'] # Keep exact string, passwords can have spaces
     
     try:
-        # Try to open with the provided password
-        doc = fitz.open(stream=file.read(), filetype='pdf', password=password)
+        pdf_bytes = file.read()
         
-        # Check if it actually decrypted (if it was encrypted and password is wrong, fitz might open it but deny access to pages)
-        if doc.is_encrypted and not doc.authenticate(password):
-            return jsonify({'error': 'Incorrect password. Cannot unlock.'}), 403
-            
+        # 1. Open the PDF without immediately enforcing the password
+        doc = fitz.open(stream=pdf_bytes, filetype='pdf')
+        
+        # 2. Check if it actually needs a password to be read
+        if doc.needs_pass:
+            # Try to authenticate
+            if not doc.authenticate(password):
+                doc.close()
+                return jsonify({'error': 'Incorrect password. Please check for typos or hidden spaces.'}), 403
+        
+        # 3. If we reach here, it either wasn't encrypted or the password was correct.
+        # Save it with no encryption.
         out = io.BytesIO()
-        # Save without any encryption
         doc.save(out, encryption=fitz.PDF_ENCRYPT_NONE)
         out.seek(0)
         doc.close()
+        
         return send_file(out, mimetype='application/pdf', as_attachment=True, download_name='unlocked.pdf')
+        
     except Exception as e:
-        return jsonify({'error': 'Incorrect password or invalid PDF.'}), 400
-# ---------- Summarization ----------
+        return jsonify({'error': 'Invalid PDF file or unexpected error.'}), 400# ---------- Summarization ----------
 def extract_all_text(pdf_bytes):
     doc = fitz.open(stream=pdf_bytes, filetype='pdf')
     text = ""

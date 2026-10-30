@@ -671,6 +671,9 @@
       if (protectFile) {
         protectFileName.textContent = protectFile.name;
         runProtectBtn.disabled = false;
+        // CLEAR PASSWORD AND STATUS ON NEW UPLOAD
+        $('protectPassword').value = '';
+        $('protectStatus').textContent = '';
       }
     };
 
@@ -714,6 +717,9 @@
       if (unlockFile) {
         unlockFileName.textContent = unlockFile.name;
         runUnlockBtn.disabled = false;
+        // CLEAR PASSWORD AND STATUS ON NEW UPLOAD
+        $('unlockPassword').value = '';
+        $('unlockStatus').textContent = '';
       }
     };
 
