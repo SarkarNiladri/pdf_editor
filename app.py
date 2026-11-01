@@ -8,6 +8,7 @@ import re
 import json
 from datetime import datetime
 from pathlib import Path
+from PIL import ImageEnhance, Image
 
 from flask import Flask, request, jsonify, send_file
 import fitz
@@ -503,6 +504,67 @@ def converter_convert():
     finally:
         shutil.rmtree(work_dir, ignore_errors=True)
 
+# ---------- Image Enhancer & Background Remover ----------
 
+
+@app.route('/api/enhance-image', methods=['POST'])
+def enhance_image():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+    
+    file = request.files['file']
+    try:
+        # Get slider values (defaults to 1.0 if not provided)
+        brightness = float(request.form.get('brightness', 1.0))
+        contrast = float(request.form.get('contrast', 1.0))
+        color = float(request.form.get('color', 1.0))
+        sharpness = float(request.form.get('sharpness', 1.0))
+        
+        img = Image.open(file.stream).convert('RGB')
+        
+        # Apply enhancements
+        if brightness != 1.0: img = ImageEnhance.Brightness(img).enhance(brightness)
+        if contrast != 1.0: img = ImageEnhance.Contrast(img).enhance(contrast)
+        if color != 1.0: img = ImageEnhance.Color(img).enhance(color)
+        if sharpness != 1.0: img = ImageEnhance.Sharpness(img).enhance(sharpness)
+        
+        out = io.BytesIO()
+        img.save(out, format='JPEG', quality=95)
+        out.seek(0)
+        return send_file(out, mimetype='image/jpeg', as_attachment=True, download_name='enhanced.jpg')
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/remove-bg', methods=['POST'])
+def remove_bg():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+    
+    file = request.files['file']
+    try:
+        from rembg import remove
+        
+        # Open image
+        img = Image.open(file.stream).convert('RGBA')
+        
+        # MEMORY PROTECTION: If image is huge, shrink it so Fly.io (1GB RAM) doesn't crash
+        max_size = 1500
+        if max(img.width, img.height) > max_size:
+            ratio = max_size / max(img.width, img.height)
+            new_size = (int(img.width * ratio), int(img.height * ratio))
+            img = img.resize(new_size, Image.Resampling.LANCZOS)
+            
+        # Remove background using AI
+        output = remove(img)
+        
+        out = io.BytesIO()
+        output.save(out, format='PNG')
+        out.seek(0)
+        return send_file(out, mimetype='image/png', as_attachment=True, download_name='no-bg.png')
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+    
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=False)

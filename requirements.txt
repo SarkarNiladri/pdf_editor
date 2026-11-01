@@ -8,6 +8,8 @@ Werkzeug>=2.0.0
 Jinja2>=3.0.0
 openai>=1.0.0
 python-dotenv>=1.0.0
+rembg>=2.0.50
+onnxruntime>=1.16.0
 
 #ATS Checker dependencies
 pdfplumber>=0.10.0
