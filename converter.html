@@ -29,6 +29,27 @@
 
     .panel { display: none; }
     .panel.active { display: block; }
+    /* Organizer tools use a two-column workspace: controls on the left, a large page viewer on the right. */
+    .panel.active.organizer-layout { display:grid; grid-template-columns:minmax(260px, 320px) minmax(0, 1fr); grid-template-areas:
+      'upload viewer'
+      'options viewer'
+      'pdfoptions viewer'
+      'files viewer'
+      'actions actions'
+      'status status'; gap:14px 18px; align-items:start; }
+    .organizer-layout #drop { grid-area:upload; min-height:170px; padding:18px 12px; }
+    .organizer-layout #imageOptions { grid-area:options; margin-top:0; }
+    .organizer-layout #pdfOptions { grid-area:pdfoptions; margin-top:0; }
+    .organizer-layout #fileList { grid-area:files; margin-top:0; min-width:0; }
+    .organizer-layout #organizerViewer { grid-area:viewer; margin-top:0; min-width:0; min-height:620px; height:100%; display:flex; flex-direction:column; }
+    .organizer-layout #pageGrid { flex:1; grid-template-columns:repeat(auto-fill,minmax(175px,1fr)); align-content:start; max-height:calc(100vh - 245px); min-height:500px; gap:16px; padding:18px; }
+    .organizer-layout .page-thumb { padding:9px; }
+    .organizer-layout .page-thumb .thumb-image-frame { height:245px; }
+    .organizer-layout .page-thumb img { height:100%; }
+    .organizer-layout .page-thumb .page-label { font-size:12px; }
+    .organizer-layout .actions { grid-area:actions; margin-top:0; }
+    .organizer-layout .status { grid-area:status; margin-top:0; }
+
 
     .drop-zone { border: 2px dashed #cbd5e1; border-radius: 14px; min-height: 180px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px 16px; background: #fafbfc; transition: all 0.25s; cursor: pointer; }
     .drop-zone.drag-over { border-color: #4f46e5; background: #eef2ff; }
@@ -56,6 +77,24 @@
     .file-item .name { font-weight: 500; color: #0f172a; word-break: break-word; }
     .file-item .size { color: #64748b; font-size: 12px; margin-left: 8px; white-space: nowrap; }
 
+    .organizer-viewer { display:none; margin-top:16px; border:1px solid #dbe3ef; border-radius:12px; overflow:hidden; background:#f8fafc; }
+    .organizer-viewer.visible { display:block; }
+    .viewer-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; background:#eef2f7; border-bottom:1px solid #dbe3ef; flex-wrap:wrap; }
+    .viewer-head strong { font-size:14px; }
+    .viewer-head span { color:#64748b; font-size:12px; }
+    .page-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(125px,1fr)); gap:12px; padding:14px; max-height:560px; overflow:auto; }
+    .page-thumb { position:relative; border:2px solid #dbe3ef; border-radius:8px; padding:7px; background:#fff; cursor:pointer; min-width:0; text-align:left; }
+    .page-thumb .thumb-image-frame { display:flex; align-items:center; justify-content:center; width:100%; height:150px; overflow:hidden; background:#e2e8f0; }
+    .page-thumb img { display:block; width:100%; height:100%; object-fit:contain; transform-origin:center center; transition:transform .18s ease; }
+    .page-thumb img.rotate-quarter { transform:rotate(var(--preview-rotation)) scale(var(--preview-scale, .72)); }
+    .range-error { width:100%; color:#b91c1c; font-size:12px; font-weight:600; display:none; }
+    .page-thumb img.rotate-half { transform:rotate(180deg); }
+    .page-thumb .page-label { display:flex; justify-content:space-between; gap:4px; margin-top:6px; font-size:11px; color:#475569; }
+    .page-thumb.selected { border-color:#4f46e5; background:#eef2ff; box-shadow:0 0 0 1px #4f46e5; }
+    .page-thumb.dragging { opacity:.4; }
+    .page-thumb .selection-mark { position:absolute; top:9px; right:9px; background:#4f46e5; color:white; border-radius:50%; width:20px; height:20px; display:none; align-items:center; justify-content:center; font-size:12px; }
+    .page-thumb.selected .selection-mark { display:flex; }
+    .viewer-help { padding:0 14px 12px; color:#64748b; font-size:12px; }
     .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
     .convert-btn { background: #4f46e5; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 700; font-size: 14px; cursor: pointer; transition: background 0.2s; font-family: inherit; }
     .convert-btn:hover { background: #4338ca; }
@@ -77,8 +116,14 @@
       .quality-slider input[type="range"], .compress-slider input[type="range"] { width: 100%; }
       .convert-btn { width: 100%; justify-content: center; padding: 10px 16px; font-size: 13px; }
       .actions { justify-content: stretch; }
+      .panel.active.organizer-layout { display:flex; flex-direction:column; gap:12px; }
+      .organizer-layout #drop, .organizer-layout #imageOptions, .organizer-layout #pdfOptions, .organizer-layout #fileList, .organizer-layout #organizerViewer, .organizer-layout .actions, .organizer-layout .status { width:100%; }
+      .organizer-layout #organizerViewer { min-height:0; }
+      .organizer-layout #pageGrid { grid-template-columns:repeat(auto-fill,minmax(135px,1fr)); max-height:65vh; min-height:220px; padding:12px; gap:10px; }
+      .organizer-layout .page-thumb img { height:190px; }
     }
   </style>
+  <link rel="stylesheet" href="/static/theme.css">
 </head>
 <body>
   <header class="header">
@@ -100,6 +145,10 @@
           <button class="tab" data-conversion="images-to-pdf">Images → PDF</button>
           <button class="tab" data-conversion="pdf-to-images">PDF → Images</button>
           <button class="tab" data-conversion="merge-pdf">Merge PDFs</button>
+          <button class="tab" data-conversion="compress-pdf">Compress PDF</button>
+          <button class="tab" data-conversion="split-pdf">Split PDF</button>
+          <button class="tab" data-conversion="rotate-pdf">Rotate Pages</button>
+          <button class="tab" data-conversion="reorder-pdf">Reorder Pages</button>
           <button class="tab" data-conversion="image-to-image">Image → Image</button>
         </div>
       </div>
@@ -164,7 +213,13 @@
           </div>
         </div>
 
+        <div class="image-options" id="pdfOptions" style="display:none;"></div>
         <div class="files" id="fileList"></div>
+        <section class="organizer-viewer" id="organizerViewer" aria-live="polite">
+          <div class="viewer-head"><strong id="viewerTitle">Uploaded document preview</strong><span id="viewerSummary"></span></div>
+          <div class="page-grid" id="pageGrid"></div>
+          <div class="viewer-help" id="viewerHelp">Select pages to see exactly which pages will be affected.</div>
+        </section>
         <div class="actions"><button class="convert-btn" id="convertBtn" disabled>Convert</button></div>
         <div class="status" id="status"></div>
       </div>
@@ -175,7 +230,8 @@
     // Check if a specific tool was requested from the Home grid
     const urlParams = new URLSearchParams(window.location.search);
     const requestedTool = urlParams.get('tool');
-    let conversion = requestedTool || 'word-to-pdf', selectedFiles = [];
+    let conversion = (requestedTool && Object.prototype.hasOwnProperty.call(specs0(), requestedTool)) ? requestedTool : 'word-to-pdf', selectedFiles = [], previewFiles = [], draggedPage = null, originalOrder = null;
+    function specs0() { return {'word-to-pdf':1,'pdf-to-word':1,'excel-to-pdf':1,'powerpoint-to-pdf':1,'images-to-pdf':1,'pdf-to-images':1,'merge-pdf':1,'compress-pdf':1,'split-pdf':1,'rotate-pdf':1,'reorder-pdf':1,'image-to-image':1}; }
     
     const $ = id => document.getElementById(id);
     const specs = {
@@ -186,13 +242,17 @@
       'images-to-pdf': { title: 'Upload images', hint: 'PNG, JPG, JPEG or WebP • multiple files allowed', accept: '.png,.jpg,.jpeg,.webp', multiple: true, button: 'Create PDF', showOptions: false },
       'pdf-to-images': { title: 'Upload a PDF', hint: 'One PDF • pages are exported as PNG images (ZIP archive)', accept: '.pdf', multiple: false, button: 'Convert to Images', showOptions: false },
       'merge-pdf': { title: 'Upload PDFs to merge', hint: 'Select two or more PDF files', accept: '.pdf', multiple: true, button: 'Merge PDFs', showOptions: false },
+      'compress-pdf': { title: 'Upload a PDF to compress', hint: 'One PDF • optimize embedded streams, images and fonts', accept: '.pdf', multiple: false, button: 'Compress PDF', showOptions: false },
+      'split-pdf': { title: 'Upload a PDF to split', hint: 'One PDF • each comma-separated range becomes a separate PDF in a ZIP', accept: '.pdf', multiple: false, button: 'Split PDF', showOptions: false },
+      'rotate-pdf': { title: 'Upload a PDF to rotate', hint: 'One PDF • rotate all pages or selected pages', accept: '.pdf', multiple: false, button: 'Rotate Pages', showOptions: false },
+      'reorder-pdf': { title: 'Upload a PDF to reorder', hint: 'One PDF • enter every page number exactly once in the desired order', accept: '.pdf', multiple: false, button: 'Reorder Pages', showOptions: false },
       'image-to-image': { title: 'Upload an image', hint: 'PNG, JPG, JPEG, WebP, BMP, GIF or TIFF', accept: '.png,.jpg,.jpeg,.webp,.bmp,.gif,.tiff', multiple: false, button: 'Convert Image', showOptions: true }
     };
 
     function setStatus(text, type = '') {
       const s = $('status');
       s.textContent = text;
-      s.className = 'status show ' + type;
+      s.className = text ? 'status show ' + type : 'status';
     }
 
     function renderFiles() {
@@ -232,6 +292,7 @@
 
     function configure() {
       const s = specs[conversion];
+      $('panel').classList.toggle('organizer-layout', organizerTools.has(conversion));
       if (!s) return;
       $('dropTitle').textContent = s.title;
       $('dropHint').textContent = s.hint;
@@ -241,7 +302,15 @@
       const opt = $('imageOptions');
       if (s.showOptions) { opt.classList.add('visible'); updateFormatSliders(); }
       else { opt.classList.remove('visible'); }
-      selectedFiles = [];
+      const pdfOpt = $('pdfOptions');
+      const pdfOptionMarkup = {
+        'split-pdf': '<div class="option-row"><label for="pageRanges">Page ranges:</label><input id="pageRanges" type="text" placeholder="e.g. 1-3,5,8-10" style="width:min(360px,100%);"><span style="font-size:12px;color:#64748b;">Each item becomes a separate PDF in a ZIP.</span></div>',
+        'rotate-pdf': '<div class="option-row"><label for="rotation">Rotation:</label><select id="rotation"><option value="90">90° clockwise</option><option value="180">180°</option><option value="270">270° clockwise</option></select><label for="pageRanges">Pages:</label><input id="pageRanges" type="text" value="all" placeholder="all or 1-3,5" style="width:180px;"></div>',
+        'reorder-pdf': '<div class="option-row"><label for="pageOrder">New page order:</label><input id="pageOrder" type="text" placeholder="e.g. 3,1,2,4" style="width:min(360px,100%);"><span style="font-size:12px;color:#64748b;">Include every page exactly once.</span></div>'
+      };
+      pdfOpt.innerHTML = pdfOptionMarkup[conversion] || '';
+      pdfOpt.style.display = pdfOpt.innerHTML ? 'flex' : 'none';
+      selectedFiles = []; previewFiles = []; $('organizerViewer').classList.remove('visible'); $('pageGrid').innerHTML = '';
       renderFiles();
       setStatus('');
       toggleResizeOptions();
@@ -262,12 +331,127 @@
       });
     });
 
-    $('files').addEventListener('change', e => { selectedFiles = [...e.target.files]; renderFiles(); });
+    const organizerTools = new Set(['merge-pdf','compress-pdf','split-pdf','rotate-pdf','reorder-pdf']);
+    async function loadOrganizerPreview() {
+      if (!organizerTools.has(conversion) || !selectedFiles.length) {
+        $('organizerViewer').classList.remove('visible'); previewFiles = []; return;
+      }
+      $('organizerViewer').classList.add('visible'); $('viewerTitle').textContent = 'Preparing document preview…';
+      $('viewerSummary').textContent = ''; $('pageGrid').innerHTML = '';
+      try {
+        const form = new FormData(); selectedFiles.forEach(f => form.append('files', f));
+        const res = await fetch('/api/pdf-preview', {method:'POST', body:form});
+        const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Preview failed.');
+        previewFiles = data.files || []; originalOrder = null; renderPageGrid();
+        if (data.truncated) $('viewerHelp').textContent = `Showing the first ${previewFiles.reduce((n,f)=>n+f.pages.length,0)} of ${data.totalPages} pages. The operation still applies to the whole document.`;
+      } catch (err) { $('viewerTitle').textContent = 'Preview unavailable'; $('viewerHelp').textContent = err.message; }
+    }
+    function renderPageGrid() {
+      const grid = $('pageGrid'); grid.innerHTML = '';
+      const allPages = previewFiles.flatMap((file, fi) => file.pages.map(page => ({...page, fileIndex:fi, fileName:file.fileName})));
+      $('viewerTitle').textContent = conversion === 'merge-pdf' ? 'PDFs to be merged' : 'Uploaded document preview';
+      $('viewerSummary').textContent = `${previewFiles.length} file(s) · ${allPages.length} page(s)`;
+      $('viewerHelp').textContent = conversion === 'reorder-pdf' ? 'Drag pages to reorder them. The page order field updates automatically.' :
+        conversion === 'rotate-pdf' || conversion === 'split-pdf' ? 'Click page thumbnails to select the pages. Leave all unselected to apply the operation to all pages.' :
+        conversion === 'merge-pdf' ? 'Review the uploaded files and page order before merging.' : 'Review the uploaded PDF pages before compressing.';
+      allPages.forEach((page, index) => {
+        const card = document.createElement('button'); card.type='button'; card.className='page-thumb'; card.draggable = conversion === 'reorder-pdf';
+        card.dataset.index = index; card.dataset.page = page.page; card.innerHTML = `<span class="selection-mark">✓</span><span class="thumb-image-frame"><img alt="Page ${page.page}" src="${page.thumbnail}"></span><span class="page-label"><span>${escapeHtml(page.fileName)}</span><b>Page ${page.page}</b></span>`;
+        if (conversion === 'split-pdf' || conversion === 'rotate-pdf') {
+          card.addEventListener('click', () => { card.classList.toggle('selected'); syncSelectedPages(); validatePageField(); applyRotationPreview(); });
+        }
+        if (conversion === 'reorder-pdf') {
+          card.addEventListener('dragstart', () => { draggedPage=index; card.classList.add('dragging'); });
+          card.addEventListener('dragend', () => { card.classList.remove('dragging'); draggedPage=null; });
+          card.addEventListener('dragover', e => e.preventDefault());
+          card.addEventListener('drop', e => { e.preventDefault(); const target=Number(card.dataset.index); if(draggedPage===null || target===draggedPage)return; const flat=previewFiles.flatMap(f=>f.pages.map(p=>({...p,originalPage:p.originalPage || p.page,fileName:f.fileName}))); const moved=flat.splice(draggedPage,1)[0]; flat.splice(target,0,moved); previewFiles=[{fileName:selectedFiles[0].name,pages:flat.map((p,i)=>({...p,page:p.originalPage,displayPosition:i+1,fileIndex:0}))}]; renderPageGrid(); $('pageOrder').value=flat.map(p=>p.originalPage || p.page).join(','); });
+        }
+        grid.appendChild(card);
+        card.querySelector('img').addEventListener('load', applyRotationPreview, { once: true });
+      });
+      if (conversion === 'reorder-pdf' && $('pageOrder') && !originalOrder) { originalOrder = allPages.map(p=>p.originalPage || p.page).join(','); $('pageOrder').value = originalOrder; }
+      applyRotationPreview();
+    }
+    function syncSelectedPages() {
+      const selected=[...$('pageGrid').querySelectorAll('.page-thumb.selected')].map(el=>Number(el.dataset.index)+1);
+      const field=$('pageRanges'); if(field) field.value=selected.length ? selected.join(',') : (conversion==='rotate-pdf' ? 'all' : '');
+    }
+
+    // Page ranges are parsed with exactly the same rules as the server (converter.py
+    // _parse_page_ranges), so the live preview never disagrees with the real result.
+    function parsePageRanges(value, pageCount) {
+      const raw=(value || '').trim().toLowerCase();
+      if (!raw) return { error: 'Enter at least one page number or range, e.g. 1-3,5.' };
+      const groups=[];
+      for (const piece of raw.split(',')) {
+        const part=piece.trim();
+        if (!part) return { error: 'Page ranges contain an empty item.' };
+        if (part.includes('-')) {
+          const bits=part.split('-').map(x=>x.trim());
+          if (bits.length !== 2 || !bits.every(x=>/^\d+$/.test(x))) return { error: `Invalid page range: ${part}` };
+          const start=Number(bits[0]), end=Number(bits[1]);
+          if (end < start) return { error: `Page range ${part} goes backwards. Write it as ${end}-${start}.` };
+          if (start < 1 || end > pageCount) return { error: `Page range ${part} is outside 1-${pageCount}.` };
+          const g=[]; for (let n=start; n<=end; n++) g.push(n); groups.push(g);
+        } else {
+          if (!/^\d+$/.test(part)) return { error: `Invalid page number: ${part}` };
+          const page=Number(part);
+          if (page < 1 || page > pageCount) return { error: `Page ${page} is outside 1-${pageCount}.` };
+          groups.push([page]);
+        }
+      }
+      return { groups };
+    }
+    function totalPreviewPages() { return previewFiles.reduce((sum,file)=>sum+(file.pageCount || file.pages.length),0); }
+    function validatePageField() {
+      if (conversion !== 'rotate-pdf' && conversion !== 'split-pdf') return true;
+      const field=$('pageRanges'); if (!field || !previewFiles.length) return true;
+      const value=field.value.trim().toLowerCase();
+      if (conversion === 'rotate-pdf' && (value === '' || value === 'all')) { setRangeError(''); return true; }
+      if (conversion === 'split-pdf' && !value) { setRangeError(''); return true; }
+      const parsed=parsePageRanges(value, totalPreviewPages());
+      setRangeError(parsed.error || ''); return !parsed.error;
+    }
+    function setRangeError(message) {
+      let el=$('rangeError');
+      if (!el) { el=document.createElement('div'); el.id='rangeError'; el.className='range-error'; $('pdfOptions').appendChild(el); }
+      el.textContent=message; el.style.display=message ? 'block' : 'none';
+      $('convertBtn').disabled = selectedFiles.length === 0 || !!message;
+    }
+    function applyRotationPreview() {
+      if (conversion !== 'rotate-pdf') return;
+      const rotation=Number($('rotation')?.value || 0);
+      const range=($('pageRanges')?.value || 'all').trim().toLowerCase();
+      let chosen=null;
+      if (range && range !== 'all') {
+        const parsed=parsePageRanges(range, totalPreviewPages());
+        // Invalid input: show no rotation at all (the server would reject it too).
+        chosen=new Set(parsed.error ? [] : parsed.groups.flat());
+      }
+      document.querySelectorAll('#pageGrid .page-thumb').forEach((card,index)=>{
+        const img=card.querySelector('img'); if (!img) return;
+        const shouldRotate=!chosen || chosen.has(index+1);
+        img.classList.remove('rotate-quarter','rotate-half');
+        img.style.removeProperty('--preview-rotation');
+        if (!shouldRotate || !rotation) return;
+        if (rotation===180) img.classList.add('rotate-half');
+        else {
+          // Fit the turned page inside its frame instead of a fixed shrink factor.
+          const frame=img.parentElement, W=frame.clientWidth, H=frame.clientHeight, nw=img.naturalWidth || 1, nh=img.naturalHeight || 1;
+          const c=Math.min(W/nw, H/nh), cw=nw*c, ch=nh*c, scale=Math.min(W/ch, H/cw, 1.4);
+          img.classList.add('rotate-quarter'); img.style.setProperty('--preview-rotation', `${rotation}deg`); img.style.setProperty('--preview-scale', String(scale || 0.72));
+        }
+      });
+    }
+    // pdfOptions is rebuilt when switching tools, so delegate events from its stable parent.
+    $('pdfOptions').addEventListener('input', e => { if (e.target.id==='pageRanges') { validatePageField(); applyRotationPreview(); } });
+    $('pdfOptions').addEventListener('change', e => { if (e.target.id==='rotation' || e.target.id==='pageRanges') { validatePageField(); applyRotationPreview(); } });
+    $('files').addEventListener('change', e => { selectedFiles = [...e.target.files]; renderFiles(); loadOrganizerPreview(); });
 
     const drop = $('drop');
     drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
     drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
-    drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('drag-over'); selectedFiles = [...e.dataTransfer.files]; renderFiles(); });
+    drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('drag-over'); selectedFiles = [...e.dataTransfer.files]; renderFiles(); loadOrganizerPreview(); });
 
     $('quality').addEventListener('input', function() { $('qualityValue').textContent = this.value; });
     $('compressLevel').addEventListener('input', function() { $('compressValue').textContent = this.value; });
@@ -278,6 +462,9 @@
       const s = specs[conversion];
       if (!selectedFiles.length) return;
       if (conversion === 'merge-pdf' && selectedFiles.length < 2) { setStatus('Select at least two PDFs.', 'error'); return; }
+      if (conversion === 'split-pdf' && !$('pageRanges').value.trim()) { setStatus('Enter page ranges, e.g. 1-3,5.', 'error'); return; }
+      if (!validatePageField()) { setStatus($('rangeError').textContent, 'error'); return; }
+      if (conversion === 'reorder-pdf' && !$('pageOrder').value.trim()) { setStatus('Enter the new page order, e.g. 3,1,2.', 'error'); return; }
       const form = new FormData();
       form.append('conversion', conversion);
       selectedFiles.forEach(f => form.append('files', f));
@@ -294,6 +481,9 @@
           form.append('keep_aspect', $('keepAspect').checked ? 'true' : 'false');
         }
       }
+      if (conversion === 'split-pdf' || conversion === 'rotate-pdf') form.append('page_ranges', $('pageRanges').value);
+      if (conversion === 'rotate-pdf') form.append('rotation', $('rotation').value);
+      if (conversion === 'reorder-pdf') form.append('page_order', $('pageOrder').value);
 
       const btn = $('convertBtn');
       btn.disabled = true; setStatus('Converting…');
@@ -305,14 +495,18 @@
         if (conversion === 'pdf-to-images') filename = 'images.zip';
         else if (conversion === 'pdf-to-word') filename = 'converted.docx';
         else if (conversion === 'merge-pdf') filename = 'merged.pdf';
+        else if (conversion === 'compress-pdf') filename = 'compressed.pdf';
+        else if (conversion === 'split-pdf') filename = 'split_pdfs.zip';
+        else if (conversion === 'rotate-pdf') filename = 'rotated.pdf';
+        else if (conversion === 'reorder-pdf') filename = 'reordered.pdf';
         else if (conversion === 'image-to-image') { const ext = $('targetFormat').value; filename = `converted.${ext === 'jpeg' ? 'jpg' : ext}`; }
         else { filename = 'converted.pdf'; }
-        a.download = filename; a.click(); URL.revokeObjectURL(url);
+        a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
         setStatus('Conversion completed. Download started.', 'ok');
       } catch (err) {
         setStatus(err.message, 'error');
       } finally {
-        btn.disabled = false; renderFiles();
+        btn.disabled = false; renderFiles(); validatePageField();
       }
     });
 

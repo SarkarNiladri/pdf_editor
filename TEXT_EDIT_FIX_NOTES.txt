@@ -1,0 +1,21 @@
+Existing PDF text editing update – three-level detection + smart horizontal expansion
+
+Three-level text-boundary detection:
+1. Level 1: PyMuPDF get_texttrace() rendered glyph bounds, matched by decoded text, font and origin proximity.
+2. Level 2: page.get_text('rawdict') per-character bounds, matched by decoded span text and disambiguated by font and geometry.
+3. Level 3: conservative span-bbox fallback only when it does not intersect other extracted text spans. Ambiguous/overlapping cases fail safely rather than risk adjacent content.
+
+Smart horizontal expansion:
+- Replacement width is not limited to the original glyph width.
+- For horizontal text, the backend measures available space to the right, stopping before the next same-baseline text span or the page edge.
+- Original font size is preserved when replacement fits in available space.
+- If it does not fit and automatic fitting is enabled, font size is reduced only as needed, down to a safe minimum.
+- If the replacement cannot fit, the operation fails safely instead of overlapping the next text span.
+
+Important limitations:
+- Level 3 checks extracted text spans. It does not prove the area is free of every image, vector drawing, annotation, or complex background object.
+- Rawdict fallback depends on MuPDF being able to decode the characters and provide per-character bboxes.
+- Horizontal text is supported for width expansion. Rotated text retains conservative fitting.
+- Redaction covers the selected original glyph region with the chosen solid fill; complex backgrounds may need manual handling.
+- Scanned PDFs require OCR and are not supported by this text-span editor.
+- Replacement font fidelity depends on the source font being extractable/embeddable and capable of encoding the replacement characters.
