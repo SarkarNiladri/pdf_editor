@@ -88,7 +88,7 @@ STATIC_DIR = PROJECT_ROOT / 'static'
 # Files the service worker keeps for offline use. Their combined hash names the
 # cache, so a deploy that changes any of them replaces the cached copies.
 PWA_SHELL_FILES = ('index.html', 'edit_existing_text.html', 'converter.html',
-                   'static/theme.css', 'static/pwa.js', 'static/image-tools.js', 'static/offline.html',
+                   'static/theme.css', 'static/pwa.js', 'static/net.js', 'static/image-tools.js', 'static/offline.html',
                    'static/manifest.webmanifest', 'static/sw.js')
 
 
@@ -1250,6 +1250,47 @@ def _apply_existing_text_edits(raw, edits, return_info=False):
 @app.get('/edit-existing-text')
 def edit_existing_text_ui():
     return send_file(PROJECT_ROOT / 'edit_existing_text.html', mimetype='text/html')
+
+
+# ---------- Connection check (phones) ----------
+@app.get('/check')
+def connection_check_ui():
+    resp = send_file(PROJECT_ROOT / 'check.html', mimetype='text/html')
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
+
+
+@app.route('/api/ping', methods=['GET', 'POST'])
+def api_ping():
+    """Echo back how many bytes arrived, so /check can tell which step fails."""
+    received = 0
+    files = []
+    if request.method == 'POST':
+        for f in request.files.getlist('file'):
+            data = f.read()
+            received += len(data)
+            files.append({'name': f.filename, 'bytes': len(data)})
+        if not files:
+            received = len(request.get_data(cache=False) or b'')
+    resp = jsonify({'ok': True, 'method': request.method, 'received_bytes': received, 'files': files,
+                    'server_time': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())})
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
+
+
+@app.post('/api/client-log')
+@rate_limited('CLIENT_LOG_LIMIT_PER_HOUR', 60)
+def client_log():
+    """Browsers report failed uploads here (no file contents) so they show in `fly logs`."""
+    try:
+        info = json.loads(request.get_data(cache=False)[:4000] or b'{}')
+    except ValueError:
+        info = {'raw': 'unparseable'}
+    if not isinstance(info, dict):
+        info = {'raw': str(info)[:200]}
+    safe = {k: str(v)[:300] for k, v in list(info.items())[:20]}
+    print('client-error', json.dumps(safe, ensure_ascii=True), flush=True)
+    return ('', 204)
 
 
 @app.post('/api/text-edit/extract')

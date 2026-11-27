@@ -14,6 +14,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/static/icons/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+  <script src="/static/net.js"></script>
   <script src="/static/pwa.js" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -135,18 +136,35 @@
     }
   </style>
   <link rel="stylesheet" href="/static/theme.css">
+  <style>
+    /* Opened for one tool (from the home page): show only that tool. */
+    html.single-tool .tabs-wrapper { display: none !important; }
+    html.embedded .header { display: none !important; }
+    .tool-head { margin: 0 0 16px; }
+    .tool-head h2 { margin: 0; font-size: 22px; letter-spacing: -.3px; }
+    .tool-head p { margin: 4px 0 0; color: #64748b; font-size: 14px; }
+    html.single-tool #organizerViewer:not(.visible) { display: none !important; }
+  </style>
+  <script>
+    (() => {
+      const tool = new URLSearchParams(location.search).get('tool');
+      if (tool) document.documentElement.classList.add('single-tool');
+      if (window.top !== window) document.documentElement.classList.add('embedded');
+    })();
+  </script>
 </head>
 <body>
   <header class="header">
     <div class="brand"><span class="brand-icon">▣</span> Document Converter</div>
     <nav class="nav">
       <button class="active">Converter</button>
-      <button onclick="if(window.parent!==window){window.parent.postMessage('show-editor','*')}else{window.close()}">⬅ Back to Home</button>
+      <button onclick="location.href='/'">⬅ Back to Home</button>
     </nav>
   </header>
 
   <div class="wrap">
     <section class="converter-card">
+      <div class="tool-head" id="toolHead" hidden><h2 id="toolName"></h2><p id="toolDesc"></p></div>
       <div class="tabs-wrapper">
         <div class="tabs" id="tabsContainer">
           <button class="tab active" data-conversion="word-to-pdf">Word → PDF</button>
@@ -325,6 +343,28 @@
       renderFiles();
       setStatus('');
       toggleResizeOptions();
+    }
+
+    // Opened for a single tool: name it and hide the other converters.
+    const TOOL_NAMES = {
+      'word-to-pdf': ['📄 Word to PDF', 'Convert DOC and DOCX files to PDF.'],
+      'pdf-to-word': ['📝 PDF to Word', 'Turn a PDF into an editable Word document.'],
+      'excel-to-pdf': ['📊 Excel to PDF', 'Convert spreadsheets to PDF.'],
+      'powerpoint-to-pdf': ['📽️ PowerPoint to PDF', 'Convert presentations to PDF.'],
+      'images-to-pdf': ['🖼️ Images to PDF', 'Combine photos and images into one PDF.'],
+      'pdf-to-images': ['📸 PDF to Images', 'Save each PDF page as an image.'],
+      'merge-pdf': ['🔗 Merge PDFs', 'Combine several PDFs into one file.'],
+      'compress-pdf': ['🗜️ Compress PDF', 'Make a PDF smaller to share or email.'],
+      'split-pdf': ['✂️ Split PDF', 'Pull page ranges out into separate PDFs.'],
+      'rotate-pdf': ['🔄 Rotate Pages', 'Turn all pages or just the ones you pick.'],
+      'reorder-pdf': ['↕️ Reorder Pages', 'Change the order of the pages.'],
+      'image-to-image': ['🔄 Image to Image', 'Convert an image to another format.'],
+    };
+    if (requestedTool && TOOL_NAMES[conversion]) {
+      $('toolName').textContent = TOOL_NAMES[conversion][0];
+      $('toolDesc').textContent = TOOL_NAMES[conversion][1];
+      $('toolHead').hidden = false;
+      document.title = TOOL_NAMES[conversion][0].replace(/^\S+\s/, '') + ' · PDF Suite';
     }
 
     // Set active tab based on URL parameter

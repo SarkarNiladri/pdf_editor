@@ -19,6 +19,7 @@ const SHELL_URLS = [
   '/converter',
   '/static/theme.css',
   '/static/pwa.js',
+  '/static/net.js',
   '/static/image-tools.js',
   '/static/offline.html',
   '/manifest.webmanifest',

@@ -14,6 +14,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/static/icons/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+  <script src="/static/net.js"></script>
   <script src="/static/pwa.js" defer></script>
   <script src="/static/image-tools.js" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -102,7 +103,10 @@
       .sidebar-close { display: block; }
       .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 25; top: 64px; }
       .sidebar-backdrop.active { display: block; }
+      .tools-toggle { display: inline-flex !important; }
     }
+    .tools-toggle { display: none; padding: 4px 10px; font-weight: 700; }
+    .home-help { text-align: center; font-size: 13px; margin: 18px 0 90px; } .home-help a { color: #5b4cf0; font-weight: 600; }
     .tool-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-top: 4px; }
     .tool-grid-sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     
@@ -268,6 +272,7 @@
         <div class="tool-card" data-category="security" onclick="showUnlock()"><div class="tool-icon icon-green">🔓</div><h3>Unlock PDF</h3><p>Remove password protection from a PDF.</p></div>
       </div>
       <div class="tool-empty" id="toolEmpty" role="status">No tools found. Try another search or category.</div>
+      <p class="home-help"><a href="/check">Having trouble uploading? Run the connection check</a></p>
     </div>
     <nav class="home-tabbar" aria-label="Jump to a tool category">
       <button type="button" class="active" data-jump="all"><span aria-hidden="true">🏠</span>Home</button>
@@ -316,6 +321,7 @@
 
       <main class="main">
         <header class="toolbar" id="toolbar" hidden>
+          <button class="btn tools-toggle" id="toolsToggle" type="button" aria-controls="sidebar">🛠️ Tools</button>
           <div class="page-nav">
             <button class="btn" id="prevBtn" style="padding:4px 10px;">‹</button>
             <span><b id="pageNum">1</b> / <span id="pageCount">0</span></span>
@@ -667,7 +673,7 @@
         document.getElementById('homeView')?.scrollTo({ top: 0, behavior: 'smooth' });
       });
     });
-    function showEditor() { hideAllViews(); document.getElementById('editorView').classList.add('active'); document.getElementById('sidebar').classList.add('open'); }
+    function showEditor() { hideAllViews(); document.getElementById('editorView').classList.add('active'); if (pdfData) closeSidebar(); else openSidebar(); }
     function showConverter(tool) { hideAllViews(); document.getElementById('converterView').classList.add('active'); document.getElementById('converterIframe').src = `/converter?tool=${tool}`; }
     function showTailor() { hideAllViews(); document.getElementById('tailorView').classList.add('active'); }
     function showSummarize() { hideAllViews(); document.getElementById('summarizeView').classList.add('active'); }
@@ -676,7 +682,13 @@
     function showUnlock() { hideAllViews(); document.getElementById('unlockView').classList.add('active'); }
     function showEnhance() { hideAllViews(); document.getElementById('enhanceView').classList.add('active'); }
     function showRemoveBg() { hideAllViews(); document.getElementById('removeBgView').classList.add('active'); }
+    const isPhoneLayout = () => window.matchMedia('(max-width: 768px)').matches;
+    function openSidebar() { document.getElementById('sidebar').classList.add('open'); if (isPhoneLayout()) document.getElementById('sidebarBackdrop').classList.add('active'); }
     function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarBackdrop').classList.remove('active'); }
+    document.getElementById('sidebarClose').addEventListener('click', closeSidebar);
+    document.getElementById('sidebarBackdrop').addEventListener('click', closeSidebar);
+    document.getElementById('toolsToggle').addEventListener('click', () => document.getElementById('sidebar').classList.contains('open') ? closeSidebar() : openSidebar());
+    ['addTextBtn', 'addShapeBtn', 'addImageBtn'].forEach(id => document.getElementById(id).addEventListener('click', () => { if (isPhoneLayout()) closeSidebar(); }));
     
     // Editor State
     let pdfData = null, pages = [], currentPage = 1, added = [], shapes = [], images = [], selected = null, history = [], future = [], additionOrder = 1;
@@ -715,6 +727,9 @@
 
     async function loadPDF(file) {
       const fd = new FormData(); fd.append('file', file);
+      if (isPhoneLayout()) closeSidebar();
+      setStatus('Opening ' + (file.name || 'your PDF') + '…');
+      if (!pdfData) viewerWrap.querySelector('.empty-state p')?.replaceChildren(document.createTextNode('Opening ' + (file.name || 'your PDF') + '…'));
       try {
         const res = await fetch('/api/extract', { method: 'POST', body: fd });
         const data = await res.json();
@@ -724,8 +739,12 @@
         $('pageCount').textContent = pages.length; $('pageInput').max = pages.length;
         $('toolbar').hidden = false; $('tools').hidden = false;
         viewer = null; overlay = null;
-        await renderCurrentPage(); uploadArea.style.display = 'none'; $('newDocBtn').style.display = 'block'; closeSidebar();
-      } catch (e) { showError(e.message); }
+        uploadArea.style.display = 'none'; $('newDocBtn').style.display = 'block'; closeSidebar(); setStatus('');
+        await renderCurrentPage();
+      } catch (e) {
+        showError(e.message);
+        if (!pdfData) { viewerWrap.querySelector('.empty-state p')?.replaceChildren(document.createTextNode('Upload a PDF to get started')); fileInput.value = ''; openSidebar(); }
+      }
     }
 
     async function renderServerPage(token) {

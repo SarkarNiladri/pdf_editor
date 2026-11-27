@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#5b4cf0">
+  <title>Connection check · PDF Suite</title>
+  <link rel="icon" href="/static/icons/favicon-32.png">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 15px/1.5 Inter, -apple-system, "Segoe UI", sans-serif; background: #f5f6fb; color: #0f172a; }
+    .band { background: linear-gradient(135deg, #5b4cf0, #8b5cf6); color: #fff; padding: calc(16px + env(safe-area-inset-top)) 18px 18px; }
+    .band a { color: #fff; text-decoration: none; font-weight: 700; display: inline-block; margin-bottom: 6px; }
+    h1 { margin: 0; font-size: 20px; }
+    .band p { margin: 4px 0 0; opacity: .9; font-size: 13.5px; }
+    main { max-width: 560px; margin: 0 auto; padding: 16px; }
+    .card { background: #fff; border: 1px solid #e6e8f0; border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+    .row { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid #f1f5f9; }
+    .row:first-child { border-top: 0; }
+    .st { width: 26px; height: 26px; border-radius: 99px; display: grid; place-items: center; flex: none; background: #f1f5f9; color: #64748b; font-weight: 800; font-size: 13px; }
+    .st.ok { background: #ecfdf5; color: #059669; } .st.bad { background: #fef2f2; color: #dc2626; } .st.run { background: #eeecff; color: #5b4cf0; }
+    .row b { display: block; font-size: 14px; } .row small { color: #64748b; font-size: 12.5px; word-break: break-word; }
+    button, label.btn { display: block; width: 100%; border: 0; border-radius: 14px; padding: 13px; font: inherit; font-weight: 700; text-align: center; cursor: pointer; }
+    .pri { background: linear-gradient(135deg, #5b4cf0, #8b5cf6); color: #fff; }
+    .sec { background: #fff; border: 1px solid #e6e8f0 !important; color: #334155; margin-top: 8px; }
+    input[type=file] { display: none; }
+    #summary { font-weight: 650; }
+    pre { white-space: pre-wrap; font-size: 11.5px; background: #f8fafc; border-radius: 10px; padding: 10px; margin: 8px 0 0; max-height: 220px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <div class="band">
+    <a href="/">‹ PDF Suite</a>
+    <h1>Connection check</h1>
+    <p>Finds out which step fails when a tool says it can't connect. Nothing you pick is saved.</p>
+  </div>
+  <main>
+    <div class="card">
+      <div id="steps"></div>
+      <button class="pri" id="runBtn" style="margin-top:8px">Run the check</button>
+      <label class="btn sec" id="pickBtn">Also test a file from this device<input type="file" id="picker" accept="application/pdf,.pdf,image/*"></label>
+    </div>
+    <div class="card"><div id="summary">Tap "Run the check".</div><pre id="log" hidden></pre>
+      <button class="sec" id="copyBtn" hidden>Copy results</button></div>
+  </main>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const lines = [];
+  const log = s => { lines.push(s); $('log').hidden = false; $('log').textContent = lines.join('\n'); $('copyBtn').hidden = false; };
+  const steps = [
+    { id: 'reach', title: 'Reach the server' },
+    { id: 'small', title: 'Send a small test file (200 KB)' },
+    { id: 'big', title: 'Send a bigger test file (4 MB)' },
+    { id: 'pickRaw', title: 'Send your file as picked', manual: true },
+    { id: 'pickCopy', title: 'Send your file after copying it into memory', manual: true },
+  ];
+  $('steps').innerHTML = steps.map(s => `<div class="row" id="r-${s.id}"><div class="st">${s.manual ? '·' : '?'}</div><div><b>${s.title}</b><small>${s.manual ? 'Use the second button' : 'Not run yet'}</small></div></div>`).join('');
+  function mark(id, state, text) {
+    const r = $('r-' + id); const st = r.querySelector('.st');
+    st.className = 'st ' + state; st.textContent = state === 'ok' ? '✓' : state === 'bad' ? '✕' : '…';
+    r.querySelector('small').textContent = text;
+  }
+  async function timed(id, fn) {
+    mark(id, 'run', 'Working…'); const t0 = performance.now();
+    try { const msg = await fn(); const ms = Math.round(performance.now() - t0); mark(id, 'ok', `${msg} · ${ms} ms`); log(`OK   ${id}: ${msg} (${ms} ms)`); return true; }
+    catch (err) { const ms = Math.round(performance.now() - t0); const m = `${err && err.name}: ${err && err.message}`; mark(id, 'bad', m); log(`FAIL ${id}: ${m} (${ms} ms)`); return false; }
+  }
+  async function send(blob, name) {
+    const fd = new FormData(); fd.append('file', blob, name);
+    const res = await fetch('/api/ping', { method: 'POST', body: fd, cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (data.received_bytes !== blob.size) throw new Error(`server got ${data.received_bytes} of ${blob.size} bytes`);
+    return `server got all ${blob.size.toLocaleString()} bytes`;
+  }
+  function testPdf(bytes) {
+    const head = '%PDF-1.4\n% PDF Suite connection check\n';
+    const body = new Uint8Array(bytes); body.set(new TextEncoder().encode(head));
+    for (let i = head.length; i < bytes; i++) body[i] = 32 + (i % 90);
+    return new Blob([body], { type: 'application/pdf' });
+  }
+  function header() {
+    lines.length = 0;
+    log(`PDF Suite check ${new Date().toISOString()}`);
+    log(`Device: ${navigator.userAgent}`);
+    log(`Online: ${navigator.onLine} · App mode: ${matchMedia('(display-mode: standalone)').matches} · Service worker: ${navigator.serviceWorker && navigator.serviceWorker.controller ? 'on' : 'off'}`);
+  }
+  function summarize() {
+    const failed = [...document.querySelectorAll('.st.bad')].length;
+    $('summary').textContent = failed ? `${failed} step(s) failed. Tap "Copy results" and paste them to the developer.` : 'Everything that ran worked.';
+    try { navigator.sendBeacon('/api/client-log', new Blob([JSON.stringify({ kind: 'check', page: '/check', ua: navigator.userAgent, result: lines.slice(3).join(' | ') })], { type: 'application/json' })); } catch {}
+  }
+  $('runBtn').onclick = async () => {
+    $('runBtn').disabled = true; header();
+    await timed('reach', async () => { const r = await fetch('/api/ping', { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); await r.json(); return 'server answered'; });
+    await timed('small', () => send(testPdf(200 * 1024), 'check-small.pdf'));
+    await timed('big', () => send(testPdf(4 * 1024 * 1024), 'check-big.pdf'));
+    summarize(); $('runBtn').disabled = false;
+  };
+  $('picker').onchange = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    if (!lines.length) header();
+    log(`File: ${file.name} · ${file.size.toLocaleString()} bytes · type "${file.type}" · modified ${new Date(file.lastModified).toISOString()}`);
+    await timed('pickRaw', () => send(file, file.name));
+    await timed('pickCopy', async () => { const buf = await file.arrayBuffer(); return send(new File([buf], file.name, { type: file.type }), file.name); });
+    summarize(); e.target.value = '';
+  };
+  $('copyBtn').onclick = async () => {
+    const text = lines.join('\n');
+    try { await navigator.clipboard.writeText(text); $('copyBtn').textContent = 'Copied ✓'; }
+    catch { const r = document.createRange(); r.selectNodeContents($('log')); getSelection().removeAllRanges(); getSelection().addRange(r); $('copyBtn').textContent = 'Selected, press Copy'; }
+    setTimeout(() => { $('copyBtn').textContent = 'Copy results'; }, 2500);
+  };
+})();
+</script>
+</body>
+</html>
