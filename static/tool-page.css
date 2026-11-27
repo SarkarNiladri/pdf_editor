@@ -1,0 +1,96 @@
+/* PDF Suite: shared 3-step tool page (see static/tool-page.js). */
+
+/* ---------- layout ---------- */
+.app-view.tp { flex-direction: column; align-items: center; justify-content: flex-start !important; }
+.app-view.tp > :not(.tp-band) { width: 100%; }
+.app-view.tp > .card-panel { max-width: 640px !important; }
+.app-view.tp > .split-grid, .app-view.tp > .tailor-grid { max-width: 1000px !important; }
+
+.tp-band {
+  width: 100%; max-width: 1000px; margin: 0 auto 18px; padding: 18px 22px 16px;
+  background: linear-gradient(135deg, var(--accent, #5b4cf0) 0%, var(--accent-2, #8b5cf6) 100%);
+  color: #fff; border-radius: 22px; box-shadow: 0 18px 40px -22px rgba(76, 51, 214, .8);
+}
+.app-view.tp:has(> .card-panel) > .tp-band { max-width: 640px; }
+.tp-band-row { display: flex; align-items: flex-start; gap: 12px; }
+.tp-back {
+  flex: none; width: 38px; height: 38px; border: 0; border-radius: 999px; cursor: pointer;
+  background: rgba(255, 255, 255, .2); color: #fff; font-size: 24px; line-height: 1; display: grid; place-items: center;
+}
+.tp-back:hover { background: rgba(255, 255, 255, .3); }
+.tp-titles { min-width: 0; }
+.tp-title { margin: 2px 0 0; font-size: 22px; font-weight: 780; letter-spacing: -.3px; color: #fff; }
+.tp-desc { margin: 4px 0 0; font-size: 14px; line-height: 1.45; color: rgba(255, 255, 255, .9); }
+.tp-progress { display: flex; align-items: center; gap: 12px; margin: 14px 0 0 50px; }
+.tp-steps { display: flex; gap: 6px; flex: 1; max-width: 260px; }
+.tp-steps span { flex: 1; height: 5px; border-radius: 9px; background: rgba(255, 255, 255, .3); transition: background .25s; }
+.tp-steps span.on { background: #fff; }
+.tp-step-text { font-size: 12.5px; font-weight: 650; color: rgba(255, 255, 255, .92); white-space: nowrap; }
+
+/* ---------- step 1 → 2: the upload box becomes a file card ---------- */
+.tp .tp-picked { display: none !important; }
+.tp-file {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin: 0 0 18px;
+  background: #fff; border: 1px solid var(--line, #e6e8f0); border-radius: 16px;
+}
+.tp-file[hidden] { display: none; }
+.tp-file-icon {
+  flex: none; width: 44px; height: 52px; border-radius: 8px; display: grid; place-items: center;
+  background: var(--accent-soft, #eeecff); color: var(--accent, #5b4cf0); font-size: 11px; font-weight: 800; letter-spacing: .4px;
+}
+.tp-file-text { min-width: 0; flex: 1; }
+.tp-file-text b { display: block; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tp-file-text small { display: block; color: var(--muted, #64748b); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tp-change {
+  flex: none; border: 0; background: none; color: var(--accent, #5b4cf0); font: inherit; font-weight: 700; font-size: 14px;
+  padding: 10px 6px; cursor: pointer;
+}
+
+/* ---------- status / errors ---------- */
+.tp-status.tp-empty { display: none; }
+.tp-status { font-size: 14px; }
+.tp-status.tp-bad {
+  text-align: left !important; color: #9a3412 !important; background: #fff7ed; border: 1px solid #fed7aa;
+  border-radius: 14px; padding: 12px 14px; font-weight: 600;
+}
+
+/* ---------- step 3: result card ---------- */
+.tp-done .tp-status:not(.tp-bad) { display: none; }
+.tp-result { margin-top: 18px; padding: 22px 18px 18px; text-align: center; background: #fff; border: 1px solid var(--line, #e6e8f0); border-radius: 20px; box-shadow: var(--shadow-sm, none); }
+.tp-result[hidden] { display: none; }
+.tp-ok { width: 60px; height: 60px; margin: 0 auto 10px; border-radius: 999px; display: grid; place-items: center; background: #ecfdf5; color: #059669; font-size: 30px; font-weight: 800; }
+.tp-result-title { margin: 0; font-size: 19px; font-weight: 780; color: var(--ink, #0f172a); background: none !important; padding: 0 !important; }
+.tp-result-name { margin: 4px 0 0; color: var(--muted, #64748b); font-size: 13.5px; word-break: break-all; }
+.tp-size { margin: 10px 0 16px; font-size: 15px; color: var(--ink-2, #334155); }
+.tp-size s { color: #94a3b8; }
+.tp-size b { color: #059669; font-size: 19px; }
+.tp-btn {
+  display: block; width: 100%; min-height: 48px; margin-top: 10px; border-radius: 14px; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer;
+  background: #fff; color: var(--ink-2, #334155); border: 1px solid var(--line, #e6e8f0);
+}
+.tp-btn.tp-primary { background: linear-gradient(135deg, var(--accent, #5b4cf0), var(--accent-2, #8b5cf6)); color: #fff; border: 0; box-shadow: 0 10px 22px -12px rgba(91, 76, 240, .9); }
+.tp-btn.tp-again { font-size: 14px; }
+.tp-next-label { margin: 20px 0 8px; text-align: left; font-size: 12px; font-weight: 750; letter-spacing: .5px; text-transform: uppercase; color: var(--muted, #64748b); }
+.tp-next { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tp-next button {
+  display: flex; align-items: center; gap: 8px; padding: 11px 12px; min-height: 46px; border-radius: 12px; cursor: pointer;
+  background: #fff; border: 1px solid var(--line, #e6e8f0); font: inherit; font-size: 13.5px; font-weight: 650; color: var(--ink, #0f172a); text-align: left;
+}
+.tp-next button:hover { border-color: #c7c2ff; }
+
+/* ---------- phones ---------- */
+@media (max-width: 768px) {
+  .app-view.tp { padding: 0 0 calc(110px + env(safe-area-inset-bottom)) !important; }
+  .app-view.tp > :not(.tp-band) { padding-left: 12px; padding-right: 12px; }
+  .app-view.tp > .card-panel { width: calc(100% - 24px); padding: 16px 14px !important; }
+  .tp-band { border-radius: 0 0 24px 24px; margin-bottom: 14px; padding: 14px 14px 16px; box-shadow: none; }
+  .app-view.tp:has(> .card-panel) > .tp-band { max-width: none; }
+  .tp-title { font-size: 19px; }
+  .tp-desc { font-size: 13px; }
+  .tp-progress { margin-left: 50px; }
+  /* Main button stays reachable with your thumb. */
+  .tp[data-step="2"] .tp-run {
+    position: sticky; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 6;
+    box-shadow: 0 -12px 24px -8px rgba(245, 246, 251, .95), 0 12px 26px -12px rgba(91, 76, 240, .9) !important;
+  }
+}

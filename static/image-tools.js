@@ -32,6 +32,7 @@
     try { const data = await res.json(); return data.error || fallback; } catch { return fallback; }
   }
   function download(blob, filename) {
+    if (window.pdfSuiteSaveFile) { window.pdfSuiteSaveFile(blob, filename); return; }
     const url = URL.createObjectURL(blob);
     const a = el('a', { href: url, download: filename });
     document.body.append(a); a.click(); a.remove();

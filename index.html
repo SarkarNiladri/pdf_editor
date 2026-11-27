@@ -17,6 +17,8 @@
   <script src="/static/net.js"></script>
   <script src="/static/pwa.js" defer></script>
   <script src="/static/image-tools.js" defer></script>
+  <script src="/static/tool-page.js" defer></script>
+  <link rel="stylesheet" href="/static/tool-page.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
@@ -106,6 +108,21 @@
       .tools-toggle { display: inline-flex !important; }
     }
     .tools-toggle { display: none; padding: 4px 10px; font-weight: 700; }
+    .edit-dock, .dock-download { display: none; }
+    @media (max-width: 768px) {
+      /* Phones: once a PDF is open the page fills the screen and the tools sit in a bottom bar. */
+      .editor-ready .tools-toggle { display: none !important; }
+      .editor-ready .dock-download { display: inline-flex; align-items: center; padding: 6px 12px; border: 0; border-radius: 999px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #5b4cf0, #8b5cf6); white-space: nowrap; }
+      .editor-ready .edit-dock:not([hidden]) { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 24; justify-content: space-around; gap: 2px;
+        padding: 6px 6px calc(8px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.97); border-top: 1px solid #e6e8f0; box-shadow: 0 -10px 30px -18px rgba(30,27,75,.35); }
+      .edit-dock button { flex: 1; min-height: 52px; border: 0; background: none; border-radius: 12px; font: inherit; font-size: 11px; font-weight: 650; color: #334155; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; }
+      .edit-dock button span { font-size: 19px; line-height: 1; font-weight: 800; }
+      .edit-dock button:active, .edit-dock button.on { background: #eeecff; color: #5b4cf0; }
+      .edit-dock button:disabled { opacity: .4; }
+      .editor-ready .viewer-wrap { padding-bottom: calc(84px + env(safe-area-inset-bottom)) !important; }
+      .editor-ready .toolbar { gap: 6px; padding: 0 8px; }
+      .editor-ready #pageInput { display: none; }
+    }
     .home-help { text-align: center; font-size: 13px; margin: 18px 0 90px; } .home-help a { color: #5b4cf0; font-weight: 600; }
     .tool-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-top: 4px; }
     .tool-grid-sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -329,12 +346,20 @@
           </div>
           <input id="pageInput" type="number" min="1" value="1">
           <span class="spacer"></span>
+          <button class="btn dock-download" id="dockDownload" type="button">⬇ Download</button>
           <div class="tool-grid-sidebar" style="width:110px;">
             <button class="btn" id="zoomOut" style="padding:4px;">−</button>
             <button class="btn" id="zoomIn" style="padding:4px;">+</button>
           </div>
         </header>
 
+        <nav class="edit-dock" id="editDock" hidden aria-label="Editing tools">
+          <button type="button" data-dock="addTextBtn"><span aria-hidden="true">T</span>Text</button>
+          <button type="button" data-dock="addShapeBtn"><span aria-hidden="true">⬛</span>Shape</button>
+          <button type="button" data-dock="addImageBtn"><span aria-hidden="true">🖼️</span>Image</button>
+          <button type="button" data-dock="undoBtn" id="dockUndo"><span aria-hidden="true">↶</span>Undo</button>
+          <button type="button" id="dockMore"><span aria-hidden="true">⋯</span>More</button>
+        </nav>
         <section class="viewer-wrap" id="viewerWrap">
           <div class="empty-state" onclick="document.getElementById('fileInput').click()">
             <span class="icon">📄</span>
@@ -351,7 +376,7 @@
   </div>
 
   <!-- PROTECT PDF VIEW -->
-  <div class="app-view" id="protectView" style="justify-content:center; overflow-y:auto; padding:40px 20px 80px 20px;">
+  <div class="app-view" id="protectView" data-tool-page data-input="protectFileInput" data-zone="protectUploadZone" data-run="runProtectBtn" data-status="protectStatus" style="justify-content:center; overflow-y:auto; padding:40px 20px 80px 20px;">
     <div class="card-panel" style="max-width:600px; width:100%; height:fit-content;">
       <h2 style="font-size:24px; font-weight:700; margin-bottom:8px;">🔒 Protect PDF</h2>
       <p style="color:#64748b; margin-bottom:24px;">Encrypt your PDF file with a password.</p>
@@ -371,7 +396,7 @@
   </div>
 
   <!-- UNLOCK PDF VIEW -->
-  <div class="app-view" id="unlockView" style="justify-content:center; overflow-y:auto; padding:40px 20px 80px 20px;">
+  <div class="app-view" id="unlockView" data-tool-page data-input="unlockFileInput" data-zone="unlockUploadZone" data-run="runUnlockBtn" data-status="unlockStatus" style="justify-content:center; overflow-y:auto; padding:40px 20px 80px 20px;">
     <div class="card-panel" style="max-width:600px; width:100%; height:fit-content;">
       <h2 style="font-size:24px; font-weight:700; margin-bottom:8px;">🔓 Unlock PDF</h2>
       <p style="color:#64748b; margin-bottom:24px;">Remove password protection from a PDF.</p>
@@ -391,7 +416,7 @@
   </div>
 
   <!-- ENHANCE IMAGE VIEW -->
-  <div class="app-view" id="enhanceView" style="justify-content:center; overflow-y:auto; padding:40px 20px 80px 20px;">
+  <div class="app-view" id="enhanceView" data-tool-page data-input="enhanceFileInput" data-zone="enhanceUploadZone" data-run="runEnhanceBtn" data-status="enhanceStatus" style="justify-content:center; overflow-y:auto; padding:40px 20px 80px 20px;">
     <div class="page-container split-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; max-width:1000px; align-items:start;">
       
       <!-- Controls -->
@@ -440,7 +465,7 @@
   </div>
 
   <!-- REMOVE BACKGROUND VIEW -->
-  <div class="app-view" id="removeBgView" style="justify-content:center; overflow-y:auto; padding:40px 20px 80px 20px;">
+  <div class="app-view" id="removeBgView" data-tool-page data-input="removeBgFileInput" data-zone="removeBgUploadZone" data-run="runRemoveBgBtn" data-status="removeBgStatus" style="justify-content:center; overflow-y:auto; padding:40px 20px 80px 20px;">
     <div class="page-container split-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; max-width:1000px; align-items:start;">
       
       <!-- Controls -->
@@ -471,11 +496,11 @@
   </div>
 
   <!-- AI TAILOR VIEW -->
-  <div class="app-view" id="tailorView" style="overflow-y:auto; padding:24px 24px 80px 24px;">
+  <div class="app-view" id="tailorView" data-tool-page data-run="generateTailoredBtn" data-status="tailorStatus" style="overflow-y:auto; padding:24px 24px 80px 24px;">
     <div class="page-container tailor-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start;">
       <div class="card-panel">
-        <h3 style="font-size:18px; font-weight:700; margin-bottom:6px;">Optimize for ATS</h3>
-        <p style="color:#64748b; font-size:13px; margin-bottom:20px;">Upload your resume and JD. AI will rewrite your experience to match the role.</p>
+        <h2>🪄 AI Resume Tailor</h2>
+        <p>Upload your resume and the job description. AI rewrites your experience to match the role.</p>
         <label style="display:block; font-weight:600; font-size:14px; margin-bottom:8px;">1. Upload Current Resume (PDF or DOCX)</label>
         <input type="file" id="tailorResumeFile" accept=".pdf,.docx" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:20px;">
         <label style="display:block; font-weight:600; font-size:14px; margin-bottom:8px;">2. Job Description (Paste or Upload)</label>
@@ -509,7 +534,7 @@
   </div>
 
   <!-- SUMMARIZE VIEW -->
-  <div class="app-view" id="summarizeView" style="justify-content:center; overflow-y:auto; padding:40px 20px 80px 20px;">
+  <div class="app-view" id="summarizeView" data-tool-page data-input="summarizeFileInput" data-zone="summarizeUploadZone" data-run="runSummarizeBtn" data-status="summaryStatus" style="justify-content:center; overflow-y:auto; padding:40px 20px 80px 20px;">
     <div class="card-panel" style="max-width:700px; width:100%; height:fit-content;">
       <h2 style="font-size:24px; font-weight:700; margin-bottom:8px;">🤖 Document Summarizer</h2>
       <p style="color:#64748b; margin-bottom:24px;">Upload a PDF and get a 5-sentence summary instantly.</p>
@@ -525,7 +550,7 @@
   </div>
 
   <!-- ATS CHECKER VIEW -->
-  <div class="app-view" id="atsView" style="justify-content:center; overflow-y:auto; padding:40px 20px 80px 20px;">
+  <div class="app-view" id="atsView" data-tool-page data-input="atsFileInput" data-zone="atsUploadZone" data-status="atsStatus" style="justify-content:center; overflow-y:auto; padding:40px 20px 80px 20px;">
     <div class="card-panel" style="max-width:700px; width:100%; height:fit-content;">
       <h2 style="font-size:24px; font-weight:700; margin-bottom:8px;">🧠 ATS Compatibility Check</h2>
       <p style="color:#64748b; margin-bottom:24px;">Upload your resume (PDF or DOCX) to see how well it scores against Applicant Tracking Systems.</p>
@@ -688,6 +713,9 @@
     document.getElementById('sidebarClose').addEventListener('click', closeSidebar);
     document.getElementById('sidebarBackdrop').addEventListener('click', closeSidebar);
     document.getElementById('toolsToggle').addEventListener('click', () => document.getElementById('sidebar').classList.contains('open') ? closeSidebar() : openSidebar());
+    document.querySelectorAll('#editDock [data-dock]').forEach(b => b.addEventListener('click', () => document.getElementById(b.dataset.dock).click()));
+    document.getElementById('dockMore').addEventListener('click', openSidebar);
+    document.getElementById('dockDownload').addEventListener('click', () => document.getElementById('downloadBtn').click());
     ['addTextBtn', 'addShapeBtn', 'addImageBtn'].forEach(id => document.getElementById(id).addEventListener('click', () => { if (isPhoneLayout()) closeSidebar(); }));
     
     // Editor State
@@ -713,12 +741,13 @@
       setTimeout(() => { t.classList.add('hide'); setTimeout(() => t.remove(), 300); }, 4500);
     }
     function downloadBlob(blob, filename) {
+      if (window.pdfSuiteSaveFile) { window.pdfSuiteSaveFile(blob, filename); return; }
       const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 2000); // revoking immediately breaks downloads in Safari/Firefox
     }
     async function errorFrom(res, fallback) { try { const d = await res.json(); return d.error || fallback; } catch { return fallback; } }
-    function updateStats() { $('undoBtn').disabled = !history.length; $('redoBtn').disabled = !future.length; }
+    function updateStats() { $('undoBtn').disabled = !history.length; $('redoBtn').disabled = !future.length; $('dockUndo').disabled = !history.length; }
 
     const uploadArea = $('uploadArea'), fileInput = $('fileInput'), viewerWrap = $('viewerWrap');
     uploadArea.onclick = () => fileInput.click();
@@ -740,6 +769,7 @@
         $('toolbar').hidden = false; $('tools').hidden = false;
         viewer = null; overlay = null;
         uploadArea.style.display = 'none'; $('newDocBtn').style.display = 'block'; closeSidebar(); setStatus('');
+        $('editorView').classList.add('editor-ready'); $('editDock').hidden = false;
         await renderCurrentPage();
       } catch (e) {
         showError(e.message);

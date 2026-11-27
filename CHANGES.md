@@ -1,3 +1,11 @@
+# Changes: new tool pages (November 2026)
+
+- **Every tool page has the same 3 steps:** a purple header band with a back button, the tool's name and description, and a steps bar (Choose a file → Options → Done). Once a file is picked, the upload box becomes a file card with **Change**. Errors show as an orange card. After a download, a result card offers **Download again**, **Share…** (where the device supports it), **Continue with another tool**, and **Start again with another file**. Compress shows the size before and after.
+- Applies to all 12 convert/organize tools (single-tool mode), Protect, Unlock, Enhance Image, Remove Background, Summarize, ATS Check and Resume Tailor. Organize tools on a computer keep the page grid on the right, with the controls, button and result on the left.
+- **Phones:** the main button stays pinned at the bottom while you set options. **Edit PDF:** once a PDF is open, the page fills the screen, the tools sit in a bottom bar (Text, Shape, Image, Undo, More), and Download is in the top bar.
+- The layout lives in `static/tool-page.js` and `static/tool-page.css`. A view opts in with `data-tool-page` plus `data-input/zone/run/status` attributes and keeps all its own ids and handlers. Results are recorded through `window.pdfSuiteSaveFile`.
+- Tests: `tests/test_tool_pages.py` (20 tests, 101 in total). The phone/desktop end-to-end script now also checks the result card and the Edit PDF bottom bar (53 of 53 checks pass).
+
 # Changes: phones work again (November 2026)
 
 - **"Failed to fetch" on phones:** every file you pick is copied into memory the moment you choose it, and uploads send that copy (`static/net.js`, loaded first on every page). Android Chrome can refuse to re-read a picked file when the upload starts, which showed up as "Failed to fetch". A dropped request is retried once; if it still fails the message says what happened, and the failure is logged on the server (`POST /api/client-log`, no file contents; look for `client-error` in `fly logs`).

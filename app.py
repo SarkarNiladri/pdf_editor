@@ -88,7 +88,7 @@ STATIC_DIR = PROJECT_ROOT / 'static'
 # Files the service worker keeps for offline use. Their combined hash names the
 # cache, so a deploy that changes any of them replaces the cached copies.
 PWA_SHELL_FILES = ('index.html', 'edit_existing_text.html', 'converter.html',
-                   'static/theme.css', 'static/pwa.js', 'static/net.js', 'static/image-tools.js', 'static/offline.html',
+                   'static/theme.css', 'static/pwa.js', 'static/net.js', 'static/tool-page.js', 'static/tool-page.css', 'static/image-tools.js', 'static/offline.html',
                    'static/manifest.webmanifest', 'static/sw.js')
 
 

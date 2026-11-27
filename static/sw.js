@@ -20,6 +20,8 @@ const SHELL_URLS = [
   '/static/theme.css',
   '/static/pwa.js',
   '/static/net.js',
+  '/static/tool-page.js',
+  '/static/tool-page.css',
   '/static/image-tools.js',
   '/static/offline.html',
   '/manifest.webmanifest',

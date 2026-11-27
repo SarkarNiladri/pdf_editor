@@ -2,8 +2,9 @@
 
 Start the app on 127.0.0.1:8080, put sample.pdf, sample2.pdf, photo.jpg and doc.docx in a folder, then:
     python tests/e2e/phone_and_desktop.py OUTPUT_DIR [FILES_DIR]
+(set CHROME_PATH to use an installed Chrome instead of Playwright's own)
 """
-import asyncio, sys, json
+import asyncio, os, sys, json
 from playwright.async_api import async_playwright
 BASE = 'http://127.0.0.1:8080'
 OUT = sys.argv[1] if len(sys.argv) > 1 else '.'
@@ -22,7 +23,7 @@ async def wait_download_or_status(page, click, timeout=60000):
         return False, str(e)[:120]
 
 async def run(p, dev_name, dev):
-    b = await p.chromium.launch(args=['--no-sandbox'])
+    b = await p.chromium.launch(executable_path=os.environ.get('CHROME_PATH') or None, args=['--no-sandbox'])
     ctx = await b.new_context(**dev, accept_downloads=True)
     await ctx.add_init_script("try { localStorage.setItem('pdfSuiteIosTipSeen', '1'); } catch {}")
     page = await ctx.new_page()
@@ -40,16 +41,14 @@ async def run(p, dev_name, dev):
     rec(dev_name, 'Edit PDF: panel collapses after upload', (not open_) if phone else True, f'open={open_}')
     await page.screenshot(path=f'{OUT}/{dev_name}-edit-after-upload.png')
     if phone:
-        await page.click('#toolsToggle'); await page.wait_for_timeout(400)
+        await page.click('#dockMore'); await page.wait_for_timeout(400)
         o1 = await page.evaluate("document.getElementById('sidebar').classList.contains('open')")
         await page.click('#sidebarBackdrop', position={'x': 380, 'y': 400}); await page.wait_for_timeout(400)
         o2 = await page.evaluate("document.getElementById('sidebar').classList.contains('open')")
-        rec(dev_name, 'Edit PDF: Tools button reopens, backdrop closes', o1 and not o2)
-    if phone: await page.click('#toolsToggle'); await page.wait_for_timeout(300)
-    await page.click('#addTextBtn'); await page.fill('#editText', 'Hello from the phone'); await page.click('#modalSave'); await page.wait_for_timeout(2500)
+        rec(dev_name, 'Edit PDF: bottom bar More reopens panel, backdrop closes', o1 and not o2)
+    await page.click('#editDock [data-dock=addTextBtn]' if phone else '#addTextBtn'); await page.fill('#editText', 'Hello from the phone'); await page.click('#modalSave'); await page.wait_for_timeout(2500)
     await page.screenshot(path=f'{OUT}/{dev_name}-edit-with-text.png')
-    if phone: await page.click('#toolsToggle'); await page.wait_for_timeout(300)
-    ok, note = await wait_download_or_status(page, lambda: page.click('#downloadBtn'))
+    ok, note = await wait_download_or_status(page, lambda: page.click('#dockDownload' if phone else '#downloadBtn'))
     rec(dev_name, 'Edit PDF: add text + download', ok, note)
 
     # --- failure path: network drop on upload shows friendly message, panel reopens
@@ -75,7 +74,7 @@ async def run(p, dev_name, dev):
         fr = page.frame_locator('#converterIframe')
         await fr.locator('#files').wait_for(state='attached')
         tabs_visible = await fr.locator('.tabs-wrapper').is_visible()
-        name = await fr.locator('#toolName').text_content()
+        name = await fr.locator('.tp-title').text_content()
         await page.wait_for_timeout(300)
         if tool == 'compress-pdf':
             await page.screenshot(path=f'{OUT}/{dev_name}-compress-before.png')
@@ -84,7 +83,10 @@ async def run(p, dev_name, dev):
         if tool == 'split-pdf': await fr.locator('#pageRanges').fill('1,2-3')
         if tool == 'rotate-pdf': await fr.locator('#pageRanges').fill('1') if await fr.locator('#pageRanges').count() else None
         ok, note = await wait_download_or_status(page, lambda: fr.locator('#convertBtn').click(), timeout=90000)
-        rec(dev_name, f'Convert {tool}: only its own tool shown + result', ok and not tabs_visible, f'tabs={tabs_visible} title={name!r} {note}')
+        await page.wait_for_timeout(500)
+        card = await fr.locator('.tp-result:not([hidden])').count()
+        ok = ok and card == 1
+        rec(dev_name, f'Convert {tool}: only its own tool shown + result card', ok and not tabs_visible, f'tabs={tabs_visible} title={name!r} {note}')
         if tool == 'compress-pdf':
             await page.screenshot(path=f'{OUT}/{dev_name}-compress-after.png')
 
@@ -94,7 +96,9 @@ async def run(p, dev_name, dev):
     await page.set_input_files('#protectFileInput', FILES + '/sample.pdf')
     await page.fill('#protectPassword', 'secret 1')
     ok, note = await wait_download_or_status(page, lambda: page.click('#runProtectBtn'))
-    rec(dev_name, 'Protect PDF', ok, note)
+    await page.wait_for_timeout(500)
+    card = await page.locator('#protectView .tp-result:not([hidden])').count()
+    rec(dev_name, 'Protect PDF + result card', ok and card == 1, note)
     # --- enhance
     await page.evaluate("showEnhance()")
     await page.set_input_files('#enhanceFileInput', FILES + '/photo.jpg')
