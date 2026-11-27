@@ -59,6 +59,8 @@
     const close = document.createElement('button'); close.type = 'button'; close.setAttribute('aria-label', 'Close'); close.textContent = '✕';
     close.addEventListener('click', () => { tip.remove(); try { localStorage.setItem('pdfSuiteIosTipSeen', '1'); } catch {} });
     tip.append(close); document.body.append(tip);
+    // Don't leave it covering the bottom of the screen (where tool buttons sit).
+    if (!force) setTimeout(() => { if (tip.isConnected) { tip.remove(); try { localStorage.setItem('pdfSuiteIosTipSeen', '1'); } catch {} } }, 10000);
   }
 
   document.addEventListener('DOMContentLoaded', () => {

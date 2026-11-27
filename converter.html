@@ -14,7 +14,10 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/static/icons/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+  <script src="/static/net.js"></script>
   <script src="/static/pwa.js" defer></script>
+  <script src="/static/tool-page.js" defer></script>
+  <link rel="stylesheet" href="/static/tool-page.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
@@ -135,18 +138,44 @@
     }
   </style>
   <link rel="stylesheet" href="/static/theme.css">
+  <style>
+    /* Opened for one tool (from the home page): show only that tool. */
+    html.single-tool .tabs-wrapper { display: none !important; }
+    html.embedded .header { display: none !important; }
+    .tool-head { margin: 0 0 16px; }
+    .tool-head h2 { margin: 0; font-size: 22px; letter-spacing: -.3px; }
+    .tool-head p { margin: 4px 0 0; color: #64748b; font-size: 14px; }
+    html.single-tool #organizerViewer:not(.visible) { display: none !important; }
+    html.single-tool #fileList { display: none !important; }
+    /* One tool: controls, button and result in the left column, pages on the right. */
+    html.single-tool .panel.active.organizer-layout { grid-template-areas: 'upload viewer' 'file viewer' 'options viewer' 'pdfoptions viewer' 'actions viewer' 'status viewer' 'result viewer' 'rest viewer'; grid-template-rows: repeat(7, auto) 1fr; }
+    html.single-tool .organizer-layout .tp-file { grid-area: file; margin: 0; }
+    html.single-tool .organizer-layout .tp-result { grid-area: result; margin: 0; }
+    html.single-tool .tp-file, html.single-tool .tp-result { width: 100%; box-sizing: border-box; }
+    html.single-tool .actions .convert-btn { width: 100%; min-height: 48px; justify-content: center; font-size: 15px; }
+    html.single-tool .wrap { max-width: 1000px; margin: 0 auto; }
+    @media (max-width: 768px) { html.single-tool .wrap { padding: 0 0 calc(40px + env(safe-area-inset-bottom)); } html.single-tool .converter-card { margin: 0 12px; width: auto; } html.single-tool .tp-band { margin-bottom: 14px; } }
+  </style>
+  <script>
+    (() => {
+      const tool = new URLSearchParams(location.search).get('tool');
+      if (tool) document.documentElement.classList.add('single-tool');
+      if (window.top !== window) document.documentElement.classList.add('embedded');
+    })();
+  </script>
 </head>
 <body>
   <header class="header">
     <div class="brand"><span class="brand-icon">▣</span> Document Converter</div>
     <nav class="nav">
       <button class="active">Converter</button>
-      <button onclick="if(window.parent!==window){window.parent.postMessage('show-editor','*')}else{window.close()}">⬅ Back to Home</button>
+      <button onclick="location.href='/'">⬅ Back to Home</button>
     </nav>
   </header>
 
-  <div class="wrap">
+  <div class="wrap" data-tool-page="single" data-head="toolHead" data-input="files" data-zone="drop" data-run="convertBtn" data-status="status">
     <section class="converter-card">
+      <div class="tool-head" id="toolHead" hidden><h2 id="toolName"></h2><p id="toolDesc"></p></div>
       <div class="tabs-wrapper">
         <div class="tabs" id="tabsContainer">
           <button class="tab active" data-conversion="word-to-pdf">Word → PDF</button>
@@ -327,6 +356,28 @@
       toggleResizeOptions();
     }
 
+    // Opened for a single tool: name it and hide the other converters.
+    const TOOL_NAMES = {
+      'word-to-pdf': ['📄 Word to PDF', 'Convert DOC and DOCX files to PDF.'],
+      'pdf-to-word': ['📝 PDF to Word', 'Turn a PDF into an editable Word document.'],
+      'excel-to-pdf': ['📊 Excel to PDF', 'Convert spreadsheets to PDF.'],
+      'powerpoint-to-pdf': ['📽️ PowerPoint to PDF', 'Convert presentations to PDF.'],
+      'images-to-pdf': ['🖼️ Images to PDF', 'Combine photos and images into one PDF.'],
+      'pdf-to-images': ['📸 PDF to Images', 'Save each PDF page as an image.'],
+      'merge-pdf': ['🔗 Merge PDFs', 'Combine several PDFs into one file.'],
+      'compress-pdf': ['🗜️ Compress PDF', 'Make a PDF smaller to share or email.'],
+      'split-pdf': ['✂️ Split PDF', 'Pull page ranges out into separate PDFs.'],
+      'rotate-pdf': ['🔄 Rotate Pages', 'Turn all pages or just the ones you pick.'],
+      'reorder-pdf': ['↕️ Reorder Pages', 'Change the order of the pages.'],
+      'image-to-image': ['🔄 Image to Image', 'Convert an image to another format.'],
+    };
+    if (requestedTool && TOOL_NAMES[conversion]) {
+      $('toolName').textContent = TOOL_NAMES[conversion][0];
+      $('toolDesc').textContent = TOOL_NAMES[conversion][1];
+      $('toolHead').hidden = false;
+      document.title = TOOL_NAMES[conversion][0].replace(/^\S+\s/, '') + ' · PDF Suite';
+    }
+
     // Set active tab based on URL parameter
     document.querySelectorAll('.tab').forEach(b => {
       if (b.dataset.conversion === conversion) {
@@ -501,7 +552,7 @@
       try {
         const res = await fetch('/api/convert', { method: 'POST', body: form });
         if (!res.ok) { let msg = 'Conversion failed.'; try { msg = (await res.json()).error || msg; } catch {} throw new Error(msg); }
-        const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url;
+        const blob = await res.blob();
         let filename = 'converted';
         if (conversion === 'pdf-to-images') filename = 'images.zip';
         else if (conversion === 'pdf-to-word') filename = 'converted.docx';
@@ -512,8 +563,9 @@
         else if (conversion === 'reorder-pdf') filename = 'reordered.pdf';
         else if (conversion === 'image-to-image') { const ext = $('targetFormat').value; filename = `converted.${ext === 'jpeg' ? 'jpg' : ext}`; }
         else { filename = 'converted.pdf'; }
-        a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
-        setStatus('Conversion completed. Download started.', 'ok');
+        if (window.pdfSuiteSaveFile) await window.pdfSuiteSaveFile(blob, filename);
+        else { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); }
+        setStatus(document.documentElement.classList.contains('single-tool') ? '' : 'Conversion completed. Download started.', 'ok');
       } catch (err) {
         setStatus(err.message, 'error');
       } finally {

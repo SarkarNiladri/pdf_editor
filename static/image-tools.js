@@ -32,6 +32,7 @@
     try { const data = await res.json(); return data.error || fallback; } catch { return fallback; }
   }
   function download(blob, filename) {
+    if (window.pdfSuiteSaveFile) { window.pdfSuiteSaveFile(blob, filename); return; }
     const url = URL.createObjectURL(blob);
     const a = el('a', { href: url, download: filename });
     document.body.append(a); a.click(); a.remove();
@@ -195,7 +196,26 @@
       source = await previewSource(file);
       refresh();
     };
-    // The download button keeps its original full-resolution handler from index.html.
+    // Full-resolution download. This file replaces index.html's onchange, so the
+    // original click handler never saw the picked file and did nothing.
+    runBtn.onclick = async () => {
+      if (!file) return;
+      runBtn.disabled = true; runBtn.textContent = 'Processing…'; setStatus(status, '', 'info');
+      const fd = new FormData();
+      fd.append('file', file);
+      Object.entries(params()).forEach(([k, v]) => fd.append(k, v));
+      try {
+        const res = await fetch('/api/enhance-image', { method: 'POST', body: fd });
+        if (!res.ok) throw new Error(await errorFrom(res, 'Enhancement failed.'));
+        const blob = await res.blob();
+        if (window.pdfSuiteSaveFile) await window.pdfSuiteSaveFile(blob, 'enhanced.jpg'); else download(blob, 'enhanced.jpg');
+        setStatus(status, '✅ Enhanced image downloaded.', 'ok');
+      } catch (err) {
+        setStatus(status, '❌ ' + err.message, 'error');
+      } finally {
+        runBtn.disabled = false; runBtn.textContent = 'Apply & Download';
+      }
+    };
   }
 
   // ======================= Remove Background =======================

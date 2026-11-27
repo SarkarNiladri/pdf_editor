@@ -1,3 +1,21 @@
+# Changes: new tool pages (November 2026)
+
+- **Every tool page has the same 3 steps:** a purple header band with a back button, the tool's name and description, and a steps bar (Choose a file → Options → Done). Once a file is picked, the upload box becomes a file card with **Change**. Errors show as an orange card. After a download, a result card offers **Download again**, **Share…** (where the device supports it), **Continue with another tool**, and **Start again with another file**. Compress shows the size before and after.
+- Applies to all 12 convert/organize tools (single-tool mode), Protect, Unlock, Enhance Image, Remove Background, Summarize, ATS Check and Resume Tailor. Organize tools on a computer keep the page grid on the right, with the controls, button and result on the left.
+- **Phones:** the main button stays pinned at the bottom while you set options. **Edit PDF:** once a PDF is open, the page fills the screen, the tools sit in a bottom bar (Text, Shape, Image, Undo, More), and Download is in the top bar.
+- The layout lives in `static/tool-page.js` and `static/tool-page.css`. A view opts in with `data-tool-page` plus `data-input/zone/run/status` attributes and keeps all its own ids and handlers. Results are recorded through `window.pdfSuiteSaveFile`.
+- Tests: `tests/test_tool_pages.py` (20 tests, 101 in total). The phone/desktop end-to-end script now also checks the result card and the Edit PDF bottom bar (53 of 53 checks pass).
+
+# Changes: phones work again (November 2026)
+
+- **"Failed to fetch" on phones:** every file you pick is copied into memory the moment you choose it, and uploads send that copy (`static/net.js`, loaded first on every page). Android Chrome can refuse to re-read a picked file when the upload starts, which showed up as "Failed to fetch". A dropped request is retried once; if it still fails the message says what happened, and the failure is logged on the server (`POST /api/client-log`, no file contents; look for `client-error` in `fly logs`).
+- **Connection check page:** `/check` (linked at the bottom of the home page) tests reaching the server, a 200 KB and a 4 MB upload, and a file from your device sent as picked and as an in-memory copy, with a "Copy results" button. `GET/POST /api/ping` backs it.
+- **Edit PDF on phones:** the panel closes as soon as you pick a PDF, reopens with the error if opening fails, and can now be closed with ✕ or by tapping outside. A new **Tools** button in the top bar opens it again (before, there was no way back to Add Text or Download once it closed). Add Text/Shape/Image close it so you can see the page.
+- **Convert tools show only their own tool:** opening e.g. Compress PDF from the home page shows its name and description, not the 12 converter tabs, and the duplicate "Document Converter" header is hidden inside the app. "Back to Home" works when the converter is opened on its own.
+- **Enhance Image "Apply & Download" did nothing** since the live preview was added; it now downloads the full-resolution result.
+- The iPhone "Add to Home Screen" tip hides itself after 10 seconds instead of covering the tool buttons.
+- Tests: `tests/test_mobile_uploads.py` (11 tests). `tests/e2e/phone_and_desktop.py` drives every tool in Chromium at Android, iPhone and desktop sizes with Playwright (run against a local server; not part of CI).
+
 # Changes: new look (November 2026)
 
 - **Home page:** purple hero with the search box overlapping it, simpler category chips, and tools grouped under colored section headings (Edit, AI tools, Organize, Convert, Image, Security). Each category has its own color on the card edge and icon.
