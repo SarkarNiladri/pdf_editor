@@ -1,0 +1,12 @@
+Regression update for adjacent-line deletion and bold replacement
+
+Changes in this update:
+1. Level 1 get_texttrace detection now unions individual character bounding boxes instead of using the broad trace bbox.
+2. Removed vertical padding from Level 1 and Level 2 character bounds. This prevents redaction from extending into tightly spaced lines.
+3. Font extraction now requires an exact normalized font-face match instead of a loose substring match. This avoids accidentally selecting a different embedded face (for example, a bold face when the selected span is regular).
+4. Existing three-level fallback and Smart Text Expansion remain in place.
+
+Important:
+- This is a targeted correction, not a guarantee for every PDF encoding or font.
+- The complete Flask regression suite could not be executed in this environment because Flask and the project's other dependencies are unavailable and package installation/network access is disabled.
+- Run the supplied tests locally and visually verify the exact resume PDF before deploying.

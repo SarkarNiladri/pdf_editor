@@ -27,7 +27,28 @@
     .home-header { text-align: center; margin-bottom: 40px; }
     .home-header h1 { font-size: 32px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.5px; }
     .home-header p { color: #64748b; font-size: 16px; }
+    .tool-discovery { margin: 0 auto 26px; max-width: 920px; }
+    .tool-search-wrap { position: relative; margin: 0 auto 18px; max-width: 520px; }
+    .tool-search-wrap input { width: 100%; height: 46px; padding: 0 16px 0 44px; border: 1px solid #dbe3ef; border-radius: 12px; background: #fff; color: #0f172a; font: inherit; font-size: 14px; outline: none; box-shadow: 0 2px 8px rgba(15,23,42,.03); }
+    .tool-search-wrap input:focus { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(99,102,241,.12); }
+    .tool-search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 17px; pointer-events: none; }
+    .tool-tabs { display: flex; justify-content: center; gap: 8px; overflow-x: auto; padding: 4px 2px 10px; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+    .tool-tab { flex: 0 0 auto; border: 1px solid #e2e8f0; border-radius: 999px; background: #fff; color: #475569; padding: 9px 16px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .18s, color .18s, border-color .18s, box-shadow .18s; }
+    .tool-tab:hover { border-color: #a5b4fc; color: #4338ca; }
+    .tool-tab.active { background: #4f46e5; color: #fff; border-color: #4f46e5; box-shadow: 0 4px 10px rgba(79,70,229,.18); }
     .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding-bottom: 40px; }
+    .tool-card[hidden] { display: none !important; }
+    .tool-empty { display: none; padding: 34px 16px; text-align: center; color: #64748b; background: #fff; border: 1px dashed #cbd5e1; border-radius: 14px; margin-bottom: 40px; }
+    .tool-empty.visible { display: block; }
+    @media (max-width: 640px) {
+      #homeView { padding: 28px 14px 60px; justify-content: flex-start; }
+      .home-header { margin-bottom: 26px; }
+      .home-header h1 { font-size: 26px; }
+      .home-header p { font-size: 14px; }
+      .tool-tabs { justify-content: flex-start; margin-right: -14px; padding-right: 14px; }
+      .tool-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+      .tool-card { padding: 20px; }
+    }
     .tool-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; gap: 16px; }
     .tool-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); border-color: #cbd5e1; }
     .tool-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
@@ -88,7 +109,8 @@
     .empty-state p { font-size: 18px; font-weight: 500; }
     
     .object { position: absolute; pointer-events: none; border: 1px solid transparent; cursor: move; white-space: pre-wrap; overflow: visible; user-select: none; background: transparent !important; touch-action: none; }
-    .object.selected { border: 2px solid #4f46e5; }
+    .object.selected { border: 2px solid #4f46e5 !important; }
+    .rotate-handle { position:absolute; left:50%; top:-34px; width:18px; height:18px; margin-left:-9px; border-radius:50%; background:#16a34a; border:2px solid #fff; z-index:6; pointer-events:auto; cursor:grab; box-shadow:0 1px 4px rgba(0,0,0,.25); }
     .resize-handle { position: absolute; width: 20px; height: 20px; background: #4f46e5; border: 2px solid #ffffff; border-radius: 3px; z-index: 5; pointer-events: auto; box-shadow: 0 1px 4px rgba(0,0,0,0.2); touch-action: none; }
     .resize-handle.nw { left: -10px; top: -10px; cursor: nwse-resize; } .resize-handle.n { left: 50%; top: -10px; transform: translateX(-50%); cursor: ns-resize; } .resize-handle.ne { right: -10px; top: -10px; cursor: nesw-resize; }
     .resize-handle.e { right: -10px; top: 50%; transform: translateY(-50%); cursor: ew-resize; } .resize-handle.se { right: -10px; bottom: -10px; cursor: nwse-resize; } .resize-handle.s { left: 50%; bottom: -10px; transform: translateX(-50%); cursor: ns-resize; }
@@ -109,7 +131,60 @@
     #converterView { display: none; width: 100%; height: 100%; padding: 0; }
     #converterView.active { display: flex; }
     #converterIframe { width: 100%; height: 100%; border: 0; display: block; }
+  
+    /* Refreshed add/edit dialogs */
+    .modal-card, .dialog, .editor-modal {
+      border-radius: 18px !important;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, .24) !important;
+      border: 1px solid rgba(226, 232, 240, .9) !important;
+    }
+    .modal-card h2, .dialog h2, .editor-modal h2 {
+      font-size: 21px !important;
+      font-weight: 750 !important;
+      letter-spacing: -.45px;
+      color: #111827;
+    }
+    .modal-card label, .dialog label, .editor-modal label {
+      display: block;
+      margin: 12px 0 6px;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .modal-card input:not([type=color]), .modal-card textarea, .modal-card select,
+    .dialog input:not([type=color]), .dialog textarea, .dialog select,
+    .editor-modal input:not([type=color]), .editor-modal textarea, .editor-modal select {
+      border: 1px solid #dbe3ef !important;
+      border-radius: 10px !important;
+      background: #f8fafc;
+      padding: 10px 12px;
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    .modal-card input:focus, .modal-card textarea:focus, .modal-card select:focus,
+    .dialog input:focus, .dialog textarea:focus, .dialog select:focus,
+    .editor-modal input:focus, .editor-modal textarea:focus, .editor-modal select:focus {
+      outline: none;
+      border-color: #6366f1 !important;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, .13);
+    }
+    .modal-card input[type=color], .dialog input[type=color], .editor-modal input[type=color] {
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      min-height: 42px;
+    }
+    .modal-card button, .dialog button, .editor-modal button {
+      border-radius: 10px !important;
+      font-weight: 650;
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .modal-card button:hover, .dialog button:hover, .editor-modal button:hover {
+      transform: translateY(-1px);
+    }
+
   </style>
+  <link rel="stylesheet" href="/static/theme.css">
 </head>
 <body>
 
@@ -126,31 +201,49 @@
   <div class="app-view active" id="homeView">
     <div class="home-container">
       <div class="home-header">
+        <span class="hero-badge"><b>21</b> tools · edit, convert, organize, secure</span>
         <h1>All your document tools in one place</h1>
         <p>Edit, convert, and optimize your PDFs with AI-powered precision.</p>
       </div>
-      <div class="tool-grid">
-        <div class="tool-card" onclick="showEditor()"><div class="tool-icon icon-purple">✏️</div><h3>Edit PDF</h3><p>Add text, images, shapes to a PDF.</p></div>
-        <div class="tool-card" onclick="showTailor()"><div class="tool-icon icon-purple">✨</div><h3>AI Resume Tailor</h3><p>Optimize your resume to match a Job Description.</p></div>
-        <div class="tool-card" onclick="showSummarize()"><div class="tool-icon icon-purple">🤖</div><h3>Summarize PDF</h3><p>Get a concise summary of any long document.</p></div>
-        <div class="tool-card" onclick="showAts()"><div class="tool-icon icon-purple">🧠</div><h3>ATS Compatibility</h3><p>Analyze your resume against Applicant Tracking Systems.</p></div>
-        <div class="tool-card" onclick="showProtect()"><div class="tool-icon icon-red">🔒</div><h3>Protect PDF</h3><p>Encrypt your PDF with a password to secure it.</p></div>
-        <div class="tool-card" onclick="showUnlock()"><div class="tool-icon icon-green">🔓</div><h3>Unlock PDF</h3><p>Remove password protection from a PDF.</p></div>
-        
-        <!-- NEW IMAGE TOOLS -->
-        <div class="tool-card" onclick="showEnhance()"><div class="tool-icon icon-pink">✨</div><h3>Enhance Image</h3><p>Adjust brightness, contrast, color, and sharpness of any image.</p></div>
-        <div class="tool-card" onclick="showRemoveBg()"><div class="tool-icon icon-gray">✂️</div><h3>Remove Background</h3><p>Automatically remove the background from any image using AI.</p></div>
-        <!-- END NEW IMAGE TOOLS -->
-
-        <div class="tool-card" onclick="showConverter('word-to-pdf')"><div class="tool-icon icon-blue">📄</div><h3>Word to PDF</h3><p>Convert DOC and DOCX to PDF.</p></div>
-        <div class="tool-card" onclick="showConverter('pdf-to-word')"><div class="tool-icon icon-blue">📝</div><h3>PDF to Word</h3><p>Convert PDF to DOCX.</p></div>
-        <div class="tool-card" onclick="showConverter('excel-to-pdf')"><div class="tool-icon icon-green">📊</div><h3>Excel to PDF</h3><p>Convert spreadsheets to PDF.</p></div>
-        <div class="tool-card" onclick="showConverter('powerpoint-to-pdf')"><div class="tool-icon icon-orange">📽️</div><h3>PowerPoint to PDF</h3><p>Convert presentations to PDF.</p></div>
-        <div class="tool-card" onclick="showConverter('images-to-pdf')"><div class="tool-icon icon-orange">🖼️</div><h3>Images to PDF</h3><p>Combine images into a PDF.</p></div>
-        <div class="tool-card" onclick="showConverter('pdf-to-images')"><div class="tool-icon icon-blue">📸</div><h3>PDF to Images</h3><p>Export PDF pages as images.</p></div>
-        <div class="tool-card" onclick="showConverter('merge-pdf')"><div class="tool-icon icon-red">🔗</div><h3>Merge PDFs</h3><p>Combine multiple PDFs into one.</p></div>
-        <div class="tool-card" onclick="showConverter('image-to-image')"><div class="tool-icon icon-gray">🔄</div><h3>Image to Image</h3><p>Convert between image formats.</p></div>
+      <div class="tool-discovery" aria-label="Find a tool">
+        <div class="tool-search-wrap">
+          <span class="tool-search-icon" aria-hidden="true">⌕</span>
+          <input id="toolSearch" type="search" placeholder="Search tools across all categories..." aria-label="Search all tools" autocomplete="off">
+        </div>
+        <div class="tool-tabs" role="tablist" aria-label="Tool categories">
+          <button class="tool-tab active" type="button" role="tab" aria-selected="true" data-category="all">All Tools</button>
+          <button class="tool-tab" type="button" role="tab" aria-selected="false" data-category="pdf">PDF Management</button>
+          <button class="tool-tab" type="button" role="tab" aria-selected="false" data-category="organize">Organize PDF</button>
+          <button class="tool-tab" type="button" role="tab" aria-selected="false" data-category="convert">Convert PDF</button>
+          <button class="tool-tab" type="button" role="tab" aria-selected="false" data-category="ai">AI Tools</button>
+          <button class="tool-tab" type="button" role="tab" aria-selected="false" data-category="security">Security</button>
+          <button class="tool-tab" type="button" role="tab" aria-selected="false" data-category="image">Image Tools</button>
+        </div>
       </div>
+      <div class="tool-grid" id="toolGrid">
+        <div class="tool-card" data-category="pdf" onclick="showEditor()"><div class="tool-icon icon-purple">✏️</div><h3>Edit PDF</h3><p>Add text, images, shapes to a PDF.</p></div>
+        <div class="tool-card" data-category="pdf" onclick="window.location.href='/edit-existing-text'"><div class="tool-icon icon-orange">📝</div><h3>Edit Existing Text</h3><p>Find and replace text already inside a PDF.</p></div>
+        <div class="tool-card" data-category="ai" onclick="showTailor()"><div class="tool-icon icon-purple">✨</div><h3>AI Resume Tailor</h3><p>Optimize your resume to match a Job Description.</p></div>
+        <div class="tool-card" data-category="ai" onclick="showSummarize()"><div class="tool-icon icon-purple">🤖</div><h3>Summarize PDF</h3><p>Get a concise summary of any long document.</p></div>
+        <div class="tool-card" data-category="ai" onclick="showAts()"><div class="tool-icon icon-purple">🧠</div><h3>ATS Compatibility</h3><p>Analyze your resume against Applicant Tracking Systems.</p></div>
+        <div class="tool-card" data-category="security" onclick="showProtect()"><div class="tool-icon icon-red">🔒</div><h3>Protect PDF</h3><p>Encrypt your PDF with a password to secure it.</p></div>
+        <div class="tool-card" data-category="security" onclick="showUnlock()"><div class="tool-icon icon-green">🔓</div><h3>Unlock PDF</h3><p>Remove password protection from a PDF.</p></div>
+        <div class="tool-card" data-category="image" onclick="showEnhance()"><div class="tool-icon icon-pink">✨</div><h3>Enhance Image</h3><p>Adjust brightness, contrast, color, and sharpness of any image.</p></div>
+        <div class="tool-card" data-category="image" onclick="showRemoveBg()"><div class="tool-icon icon-gray">✂️</div><h3>Remove Background</h3><p>Automatically remove the background from any image using AI.</p></div>
+        <div class="tool-card" data-category="convert" onclick="showConverter('word-to-pdf')"><div class="tool-icon icon-blue">📄</div><h3>Word to PDF</h3><p>Convert DOC and DOCX to PDF.</p></div>
+        <div class="tool-card" data-category="convert" onclick="showConverter('pdf-to-word')"><div class="tool-icon icon-blue">📝</div><h3>PDF to Word</h3><p>Convert PDF to DOCX.</p></div>
+        <div class="tool-card" data-category="convert" onclick="showConverter('excel-to-pdf')"><div class="tool-icon icon-green">📊</div><h3>Excel to PDF</h3><p>Convert spreadsheets to PDF.</p></div>
+        <div class="tool-card" data-category="convert" onclick="showConverter('powerpoint-to-pdf')"><div class="tool-icon icon-orange">📽️</div><h3>PowerPoint to PDF</h3><p>Convert presentations to PDF.</p></div>
+        <div class="tool-card" data-category="convert" onclick="showConverter('images-to-pdf')"><div class="tool-icon icon-orange">🖼️</div><h3>Images to PDF</h3><p>Combine images into a PDF.</p></div>
+        <div class="tool-card" data-category="convert" onclick="showConverter('pdf-to-images')"><div class="tool-icon icon-blue">📸</div><h3>PDF to Images</h3><p>Export PDF pages as images.</p></div>
+        <div class="tool-card" data-category="organize" onclick="showConverter('merge-pdf')"><div class="tool-icon icon-red">🔗</div><h3>Merge PDFs</h3><p>Combine multiple PDFs into one.</p></div>
+        <div class="tool-card" data-category="organize" onclick="showConverter('compress-pdf')"><div class="tool-icon icon-green">🗜️</div><h3>Compress PDF</h3><p>Reduce PDF file size for easier sharing.</p></div>
+        <div class="tool-card" data-category="organize" onclick="showConverter('split-pdf')"><div class="tool-icon icon-orange">✂️</div><h3>Split PDF</h3><p>Extract page ranges into separate PDF files.</p></div>
+        <div class="tool-card" data-category="organize" onclick="showConverter('rotate-pdf')"><div class="tool-icon icon-blue">🔄</div><h3>Rotate Pages</h3><p>Rotate all pages or selected pages in a PDF.</p></div>
+        <div class="tool-card" data-category="organize" onclick="showConverter('reorder-pdf')"><div class="tool-icon icon-purple">↕️</div><h3>Reorder Pages</h3><p>Change the page sequence of a PDF.</p></div>
+        <div class="tool-card" data-category="image" onclick="showConverter('image-to-image')"><div class="tool-icon icon-gray">🔄</div><h3>Image to Image</h3><p>Convert between image formats.</p></div>
+      </div>
+      <div class="tool-empty" id="toolEmpty" role="status">No tools found. Try another search or category.</div>
     </div>
   </div>
 
@@ -426,13 +519,23 @@
   <!-- MODALS -->
   <div class="modal" id="shapeModal">
     <div class="modal-dialog">
-      <h2>⬛ Add Shape</h2>
+      <h2 id="shapeModalTitle">⬛ Add Shape</h2>
       <label>Shape type</label>
-      <select id="shapeType"><option value="rect">Rectangle (Ideal for covering text)</option><option value="ellipse">Ellipse</option></select>
-      <label>Fill color</label>
-      <div style="display:flex; gap:10px;">
-        <input id="shapeFill" type="color" value="#ffffff" style="flex:1; height:44px; padding:2px;">
-        <button class="btn" onclick="document.getElementById('shapeFill').value='#ffffff'">⚪ White</button>
+      <select id="shapeType">
+        <option value="rect">Rectangle (filled)</option><option value="rect-outline">Rectangle (outline)</option>
+        <option value="ellipse">Ellipse (filled)</option><option value="ellipse-outline">Ellipse (outline)</option>
+        <option value="line">Line</option><option value="arrow">Arrow</option>
+      </select>
+      <label>Stroke color</label>
+      <input id="shapeStroke" type="color" value="#e53935" style="width:100%; height:44px; padding:2px;">
+      <label>Line width</label>
+      <select id="shapeStrokeWidth"><option value="1">1 px — Thin</option><option value="2" selected>2 px — Normal</option><option value="4">4 px — Thick</option><option value="6">6 px — Extra thick</option></select>
+      <div id="shapeFillControls">
+        <label>Fill color</label>
+        <div style="display:flex; gap:10px;">
+          <input id="shapeFill" type="color" value="#ffffff" style="flex:1; height:44px; padding:2px;">
+          <button class="btn" onclick="document.getElementById('shapeFill').value='#ffffff'">⚪ White</button>
+        </div>
       </div>
       <div class="modal-actions">
         <button class="btn" id="shapeCancel">Cancel</button>
@@ -473,7 +576,7 @@
   
   <div class="modal" id="imageModal">
     <div class="modal-dialog">
-      <h2>🖼️ Add Image</h2>
+      <h2 id="imageModalTitle">🖼️ Add Image</h2>
       <label>Choose image</label>
       <input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
       <div class="modal-actions">
@@ -489,6 +592,33 @@
     const homeBtn = document.getElementById('globalHomeBtn');
     function hideAllViews() { views.forEach(v => v.classList.remove('active')); homeBtn.style.display = 'block'; }
     function goHome() { hideAllViews(); document.getElementById('homeView').classList.add('active'); homeBtn.style.display = 'none'; }
+    // Home tool discovery: the selected category stays active while navigating between views.
+    let activeToolCategory = 'all';
+    function filterHomeTools() {
+      const query = (document.getElementById('toolSearch')?.value || '').trim().toLowerCase();
+      const cards = Array.from(document.querySelectorAll('#toolGrid .tool-card'));
+      let visibleCount = 0;
+      cards.forEach(card => {
+        const categoryMatches = query ? true : (activeToolCategory === 'all' || card.dataset.category === activeToolCategory);
+        const textMatches = !query || card.textContent.toLowerCase().includes(query);
+        const visible = categoryMatches && textMatches;
+        card.hidden = !visible;
+        if (visible) visibleCount++;
+      });
+      document.getElementById('toolEmpty')?.classList.toggle('visible', visibleCount === 0);
+    }
+    document.querySelectorAll('.tool-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        activeToolCategory = tab.dataset.category || 'all';
+        document.querySelectorAll('.tool-tab').forEach(item => {
+          const active = item === tab;
+          item.classList.toggle('active', active);
+          item.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        filterHomeTools();
+      });
+    });
+    document.getElementById('toolSearch')?.addEventListener('input', filterHomeTools);
     function showEditor() { hideAllViews(); document.getElementById('editorView').classList.add('active'); document.getElementById('sidebar').classList.add('open'); }
     function showConverter(tool) { hideAllViews(); document.getElementById('converterView').classList.add('active'); document.getElementById('converterIframe').src = `/converter?tool=${tool}`; }
     function showTailor() { hideAllViews(); document.getElementById('tailorView').classList.add('active'); }
@@ -503,7 +633,7 @@
     // Editor State
     let pdfData = null, pages = [], currentPage = 1, added = [], shapes = [], images = [], selected = null, history = [], future = [], additionOrder = 1;
     let renderScale = 1.5, viewer = null, overlay = null, dragState = null, renderToken = 0, renderChain = Promise.resolve();
-    let displayPdfData = null, previewGeneration = 0, previewRunning = false, previewQueued = false;
+    let displayPdfData = null, previewGeneration = 0, previewRunning = false, previewQueued = false, previewIdle = Promise.resolve();
     const $ = id => document.getElementById(id);
 
     function snapshot() { return JSON.stringify({ added, shapes, images, additionOrder }); }
@@ -515,12 +645,25 @@
     async function undo() { if (!history.length) return; future.push(snapshot()); restoreSnapshot(history.pop()); selected = null; await refreshPreview(); }
     async function redo() { if (!future.length) return; history.push(snapshot()); restoreSnapshot(future.pop()); selected = null; await refreshPreview(); }
     function setStatus(t) { $('status').textContent = t || ''; }
+    function showError(message) { setStatus('⚠️ ' + message); toast(message, 'error'); }
+    function toast(message, kind = 'info') {
+      let box = document.getElementById('toastBox');
+      if (!box) { box = document.createElement('div'); box.id = 'toastBox'; box.className = 'toast-box'; document.body.appendChild(box); }
+      const t = document.createElement('div'); t.className = 'toast ' + kind; t.textContent = message; box.appendChild(t);
+      setTimeout(() => { t.classList.add('hide'); setTimeout(() => t.remove(), 300); }, 4500);
+    }
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000); // revoking immediately breaks downloads in Safari/Firefox
+    }
+    async function errorFrom(res, fallback) { try { const d = await res.json(); return d.error || fallback; } catch { return fallback; } }
     function updateStats() { $('undoBtn').disabled = !history.length; $('redoBtn').disabled = !future.length; }
 
     const uploadArea = $('uploadArea'), fileInput = $('fileInput'), viewerWrap = $('viewerWrap');
     uploadArea.onclick = () => fileInput.click();
     fileInput.onchange = e => e.target.files[0] && loadPDF(e.target.files[0]);
-    $('newDocBtn').onclick = () => { location.reload(); };
+    $('newDocBtn').onclick = () => { if ((added.length + shapes.length + images.length) && !confirm('Start a new document? Your unsaved edits will be lost.')) return; location.reload(); };
 
     async function loadPDF(file) {
       const fd = new FormData(); fd.append('file', file);
@@ -532,16 +675,20 @@
         added = []; shapes = []; images = []; selected = null; history = []; future = []; additionOrder = 1; currentPage = 1;
         $('pageCount').textContent = pages.length; $('pageInput').max = pages.length;
         $('toolbar').hidden = false; $('tools').hidden = false;
+        viewer = null; overlay = null;
         await renderCurrentPage(); uploadArea.style.display = 'none'; $('newDocBtn').style.display = 'block'; closeSidebar();
-      } catch (e) { alert(e.message); }
+      } catch (e) { showError(e.message); }
     }
 
     async function renderServerPage(token) {
       if (!displayPdfData) return;
       const res = await fetch('/api/render-page', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pdf: displayPdfData, page: currentPage, scale: renderScale }) });
+      if (!res.ok) { let msg = 'Could not render this page.'; try { msg = (await res.json()).error || msg; } catch {} throw new Error(msg); }
       const blob = await res.blob(); if (token !== renderToken) return;
-      const url = URL.createObjectURL(blob); const img = document.createElement('img'); img.src = url;
-      await new Promise(r => img.onload = r);
+      const url = URL.createObjectURL(blob); const img = document.createElement('img'); img.alt = `Page ${currentPage}`;
+      // onerror matters: without it a bad image would leave this promise (and every later render) hanging.
+      await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = () => reject(new Error('The page image could not be displayed.')); img.src = url; });
+      if (viewer) { const old = viewer.querySelector('img'); if (old?.src?.startsWith('blob:')) URL.revokeObjectURL(old.src); }
       if (!viewer) { viewer = document.createElement('div'); viewer.className = 'page-container-pdf'; overlay = document.createElement('div'); overlay.className = 'overlay'; viewer.append(img, overlay); viewerWrap.innerHTML = ''; viewerWrap.append(viewer); }
       else { viewer.replaceChildren(img, overlay); }
       const w = pages[currentPage - 1].width * renderScale, h = pages[currentPage - 1].height * renderScale;
@@ -550,7 +697,8 @@
     function requestRender() { const token = ++renderToken; renderChain = renderChain.then(() => performRender(token)); return renderChain; }
     async function performRender(token) {
       if (!displayPdfData || token !== renderToken) return;
-      await renderServerPage(token);
+      try { await renderServerPage(token); }
+      catch (err) { if (token === renderToken) showError(err.message); return; }
       if (token !== renderToken) return;
       overlay.innerHTML = ''; installCentralHitTesting(); drawObjects();
       $('pageNum').textContent = currentPage; $('pageInput').value = currentPage;
@@ -566,13 +714,29 @@
         const r = document.createElement('div');
         r.className = 'object ' + (selected === obj.id ? 'selected' : '');
         r.dataset.id = obj.id;
-        r.style.left = obj.rect.x0 * renderScale + 'px'; r.style.top = obj.rect.y0 * renderScale + 'px';
+        r.style.left = obj.rect.x0 * renderScale + 'px'; r.style.top = obj.rect.y0 * renderScale + 'px'; r.style.transform = `rotate(${Number(obj.rotation || 0)}deg)`;
         r.style.width = Math.max(8, (obj.rect.x1 - obj.rect.x0) * renderScale) + 'px'; r.style.height = Math.max(8, (obj.rect.y1 - obj.rect.y0) * renderScale) + 'px';
         
         if (obj.type === 'shape') {
-          r.style.borderColor = obj.fill; r.style.borderWidth = '1px';
-          r.style.setProperty('background', obj.previewOnly ? obj.fill : 'transparent', 'important');
-          r.style.borderRadius = obj.shape === 'ellipse' ? '50%' : '0';
+          const lineShape = ['line','arrow','double-arrow'].includes(obj.shape);
+          r.style.border = 'none';
+          r.style.background = 'transparent';
+          r.classList.add('shape-hit-area');
+          if (lineShape) {
+            const w = Math.max(8, (obj.rect.x1 - obj.rect.x0) * renderScale);
+            const h = Math.max(8, (obj.rect.y1 - obj.rect.y0) * renderScale);
+            const color = obj.stroke || '#e53935';
+            const sw = Math.max(1, Number(obj.strokeWidth || 2));
+            let svg = `<svg width="100%" height="100%" viewBox="0 0 ${w} ${h}" style="overflow:visible;pointer-events:none"><defs><marker id="ah-${obj.id}" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,4 L0,8 z" fill="${color}"/></marker></defs><line x1="2" y1="2" x2="${Math.max(4,w-2)}" y2="${Math.max(4,h-2)}" stroke="${color}" stroke-width="${sw}"`;
+            if (obj.shape === 'arrow') svg += ` marker-end="url(#ah-${obj.id})"`;
+            if (obj.shape === 'double-arrow') svg += ` marker-start="url(#ah-${obj.id})" marker-end="url(#ah-${obj.id})"`;
+            svg += '/></svg>';
+            r.innerHTML = svg; r.querySelector('svg').style.visibility = 'hidden';
+          } else {
+            r.style.border = 'none';
+            r.style.background = 'transparent';
+            r.style.borderRadius = obj.shape.startsWith('ellipse') ? '50%' : '0';
+          }
         }
         if (selected === obj.id) addResizeHandles(r, obj);
         overlay.appendChild(r);
@@ -580,6 +744,10 @@
     }
 
     function addResizeHandles(parent, item) {
+      const rot = document.createElement('div'); rot.className = 'rotate-handle'; rot.title = 'Drag to rotate';
+      rot.textContent = '↻'; rot.style.display = item.type === 'shape' ? 'block' : 'none';
+      rot.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); startDrag(e, item, 'rotate'); }, { capture: true });
+      parent.appendChild(rot);
       const dirs = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
       for (const dir of dirs) {
         const h = document.createElement('div'); h.className = 'resize-handle ' + dir; h.dataset.direction = dir;
@@ -593,17 +761,23 @@
       overlay.addEventListener('pointerdown', e => {
         if (e.button !== 0) return;
         const pr = overlay.getBoundingClientRect(); const x = (e.clientX - pr.left) / renderScale, y = (e.clientY - pr.top) / renderScale;
-        const items = [...added, ...shapes, ...images].filter(x => x.page === currentPage).reverse();
-        const hit = items.find(obj => x >= obj.rect.x0 && x <= obj.rect.x1 && y >= obj.rect.y0 && y <= obj.rect.y1);
-        if (!hit) { selected = null; refreshSelection(); return; }
-        selected = hit.id; refreshSelection(); startDrag(e, hit, 'move');
+        // Prefer text objects when they overlap a shape, so labels remain selectable.
+        const pageItems = [...added, ...shapes, ...images].filter(obj => obj.page === currentPage);
+        const hitTest = obj => x >= obj.rect.x0 && x <= obj.rect.x1 && y >= obj.rect.y0 && y <= obj.rect.y1;
+        const hit = [...pageItems.filter(obj => obj.type === 'add').reverse(),
+                     ...pageItems.filter(obj => obj.type !== 'add').reverse()].find(hitTest);
+        if (!hit) { selected = null; drawObjects(); refreshSelection(); return; }
+        selected = hit.id; drawObjects(); refreshSelection(); startDrag(e, hit, 'move');
       });
       overlay.addEventListener('dblclick', e => {
         const pr = overlay.getBoundingClientRect(); const x = (e.clientX - pr.left) / renderScale, y = (e.clientY - pr.top) / renderScale;
-        const items = [...added, ...shapes, ...images].filter(x => x.page === currentPage).reverse();
-        const hit = items.find(obj => x >= obj.rect.x0 && x <= obj.rect.x1 && y >= obj.rect.y0 && y <= obj.rect.y1);
+        // Prefer text objects when they overlap a shape, so labels remain selectable.
+        const pageItems = [...added, ...shapes, ...images].filter(obj => obj.page === currentPage);
+        const hitTest = obj => x >= obj.rect.x0 && x <= obj.rect.x1 && y >= obj.rect.y0 && y <= obj.rect.y1;
+        const hit = [...pageItems.filter(obj => obj.type === 'add').reverse(),
+                     ...pageItems.filter(obj => obj.type !== 'add').reverse()].find(hitTest);
         if (hit) {
-          selected = hit.id; refreshSelection();
+          selected = hit.id; drawObjects(); refreshSelection();
           if (hit.type === 'shape') openShapeEditor(hit);
           else if (hit.type === 'image') openImageEditor(hit);
           else openEditor(hit);
@@ -614,8 +788,8 @@
     function startDrag(e, item, type, direction = 'se') {
       const el = overlay.querySelector(`.object[data-id="${item.id}"]`) || overlay;
       let clientX = e.clientX, clientY = e.clientY;
-      dragState = { item, type, direction, before: snapshot(), rect: { ...item.rect }, sx: clientX, sy: clientY, el, dirty: false };
-      window.addEventListener('pointermove', onDrag); window.addEventListener('pointerup', endDrag, { once: true });
+      dragState = { item, type, direction, before: snapshot(), rect: { ...item.rect }, rotation: Number(item.rotation || 0), sx: clientX, sy: clientY, el, dirty: false };
+      window.addEventListener('pointermove', onDrag); window.addEventListener('pointerup', endDrag, { once: true }); window.addEventListener('pointercancel', endDrag, { once: true });
       document.body.style.touchAction = 'none';
     }
 
@@ -623,6 +797,16 @@
       if (!dragState) return;
       const dx = (e.clientX - dragState.sx) / renderScale, dy = (e.clientY - dragState.sy) / renderScale;
       let r = { ...dragState.rect };
+      if (dragState.type === 'rotate') {
+        const overlayBounds = overlay.getBoundingClientRect();
+        const cx = overlayBounds.left + ((dragState.rect.x0 + dragState.rect.x1) / 2) * renderScale;
+        const cy = overlayBounds.top + ((dragState.rect.y0 + dragState.rect.y1) / 2) * renderScale;
+        const a0 = Math.atan2(dragState.sy - cy, dragState.sx - cx);
+        const a1 = Math.atan2(e.clientY - cy, e.clientX - cx);
+        dragState.item.rotation = ((dragState.rotation + (a1 - a0) * 180 / Math.PI) % 360 + 360) % 360;
+        dragState.el.style.transform = `rotate(${dragState.item.rotation}deg)`;
+        dragState.dirty = true; return;
+      }
       if (dragState.type === 'move') { r.x0 += dx; r.x1 += dx; r.y0 += dy; r.y1 += dy; }
       else {
         if (dragState.direction.includes('w')) r.x0 = Math.min(r.x1 - 8, r.x0 + dx); if (dragState.direction.includes('e')) r.x1 = Math.max(r.x0 + 8, r.x1 + dx);
@@ -635,10 +819,23 @@
 
     async function endDrag() {
       if (!dragState) return; const d = dragState; dragState = null; window.removeEventListener('pointermove', onDrag); document.body.style.touchAction = '';
-      if (!d.dirty) return; commit(d.before); await refreshPreview();
+      if (!d.dirty) return;
+      commit(d.before);
+      drawObjects(); refreshSelection();
+      // Refresh once after the gesture; rotation is applied by the PDF renderer.
+      await refreshPreview();
     }
 
     function refreshSelection() { document.querySelectorAll('.object').forEach(x => x.classList.toggle('selected', x.dataset.id === selected)); $('selectionInfo').textContent = selected ? 'Item selected' : 'Nothing selected.'; }
+    // Clicking outside the active object/page clears its selection handles.
+    document.addEventListener('pointerdown', e => {
+      if (!selected) return;
+      const pageArea = e.target.closest('.overlay');
+      const objectToolbar = e.target.closest('.object-toolbar, .floating-toolbar');
+      if (!pageArea && !objectToolbar && !e.target.closest('.modal-dialog') && !e.target.closest('#tools')) {
+        selected = null; drawObjects(); refreshSelection();
+      }
+    }, true);
 
     let modalMode = 'add', imagePending = null;
     
@@ -649,6 +846,18 @@
       $('modalDelete').style.display = 'block'; $('modal').classList.add('open'); $('editText').focus();
     }
 
+    function openShapeEditor(item) {
+      selected = item.id;
+      $('shapeModalTitle').textContent = '⬛ Edit Shape'; $('shapeSave').textContent = '✅ Save Shape';
+      $('shapeType').value = item.shape || 'rect'; $('shapeStroke').value = item.stroke || '#e53935';
+      $('shapeStrokeWidth').value = String(item.strokeWidth || 2); $('shapeFill').value = item.fill || '#ffffff';
+      updateShapeFields(); $('shapeModal').classList.add('open');
+    }
+    function openImageEditor(item) {
+      selected = item.id; imagePending = null; $('imageFile').value = '';
+      $('imageModalTitle').textContent = '🖼️ Replace Image'; $('imageSave').textContent = '✅ Replace Image';
+      $('imageModal').classList.add('open');
+    }
     $('shapeCancel').onclick = () => { $('shapeModal').classList.remove('open'); };
     $('modalCancel').onclick = () => { $('modal').classList.remove('open'); };
     $('imageCancel').onclick = () => { $('imageModal').classList.remove('open'); imagePending = null; };
@@ -665,29 +874,46 @@
       const before = snapshot();
       if (modalMode === 'add') {
         const id = uniqueId('txt_');
-        const item = { id, type: 'add', page: currentPage, order: nextAdditionOrder(), text, fontSize: parseFloat($('fontSize').value), color: $('color').value, font: $('fontFamily').value, rect: { x0: 40, y0: 40, x1: 200, y1: 60 } };
+        const item = { id, type: 'add', page: currentPage, order: nextAdditionOrder(), text, fontSize: parseFloat($('fontSize').value), color: $('color').value, font: $('fontFamily').value, rect: (() => { const s = parseFloat($('fontSize').value) || 14; const c = document.createElement('canvas'); const ctx = c.getContext('2d'); ctx.font = `${s}px ${$('fontFamily').value}`; const lines = text.split('\n'); const w = Math.max(24, Math.ceil(Math.max(...lines.map(l => ctx.measureText(l).width)) + 8)); return { x0: 40, y0: 40, x1: 40 + w, y1: 40 + Math.ceil(s * 1.2 * (lines.length - 1) + s * 1.45) }; })() };
         added.push(item); selected = id;
       } else {
         const item = added.find(x => x.id === selected); if (!item) return;
         item.text = text; item.fontSize = parseFloat($('fontSize').value); item.color = $('color').value; item.font = $('fontFamily').value;
+        const measureCanvas = document.createElement('canvas'), measureCtx = measureCanvas.getContext('2d');
+        measureCtx.font = `${item.fontSize}px ${item.font}`;
+        const lines = text.split('\n');
+        item.rect.x1 = item.rect.x0 + Math.max(24, Math.ceil(Math.max(...lines.map(l => measureCtx.measureText(l).width)) + 8));
+        item.rect.y1 = item.rect.y0 + Math.ceil(item.fontSize * 1.2 * (lines.length - 1) + item.fontSize * 1.45);
       }
       $('modal').classList.remove('open'); commit(before); drawObjects(); refreshSelection(); await refreshPreview();
     };
 
-    $('addShapeBtn').onclick = () => { selected = null; $('shapeType').value='rect'; $('shapeFill').value='#ffffff'; $('shapeModal').classList.add('open'); };
+    function updateShapeFields() {
+      const type = $('shapeType').value;
+      $('shapeFillControls').style.display = (type === 'rect-outline' || type === 'ellipse-outline' || ['line','arrow','double-arrow'].includes(type)) ? 'none' : 'block';
+    }
+    $('shapeType').onchange = updateShapeFields;
+    $('addShapeBtn').onclick = () => {
+      selected = null; $('shapeModalTitle').textContent = '⬛ Add Shape'; $('shapeSave').textContent = '✅ Add Shape'; $('shapeType').value='rect'; $('shapeFill').value='#ffffff';
+      $('shapeStroke').value='#e53935'; $('shapeStrokeWidth').value='2'; updateShapeFields();
+      $('shapeModal').classList.add('open');
+    };
     $('shapeSave').onclick = async () => {
       const before = snapshot();
+      const shape = $('shapeType').value, stroke = $('shapeStroke').value, strokeWidth = Number($('shapeStrokeWidth').value);
+      const fill = shape.endsWith('-outline') || ['line','arrow','double-arrow'].includes(shape) ? null : $('shapeFill').value;
       if (selected && shapes.some(x => x.id === selected)) {
-        const sh = shapes.find(x => x.id === selected); sh.shape = $('shapeType').value; sh.fill = $('shapeFill').value; sh.stroke = sh.fill; sh.previewOnly = true;
+        const sh = shapes.find(x => x.id === selected);
+        sh.shape = shape; sh.fill = fill; sh.stroke = stroke; sh.strokeWidth = strokeWidth; sh.previewOnly = true;
       } else {
         const id = uniqueId('shp_');
-        shapes.push({ id, type: 'shape', shape: $('shapeType').value, page: currentPage, fill: $('shapeFill').value, stroke: $('shapeFill').value, order: nextAdditionOrder(), rect: { x0: 40, y0: 40, x1: 150, y1: 80 }, previewOnly: true });
+        shapes.push({ id, type: 'shape', shape, page: currentPage, fill, stroke, strokeWidth, order: nextAdditionOrder(), rect: { x0: 40, y0: 40, x1: 150, y1: 80 }, previewOnly: true });
         selected = id;
       }
       $('shapeModal').classList.remove('open'); commit(before); drawObjects(); refreshSelection(); await refreshPreview();
     };
 
-    $('addImageBtn').onclick = () => { selected = null; $('imageFile').value=''; $('imageModal').classList.add('open'); };
+    $('addImageBtn').onclick = () => { selected = null; imagePending = null; $('imageFile').value=''; $('imageModalTitle').textContent = '🖼️ Add Image'; $('imageSave').textContent = '✅ Add Image'; $('imageModal').classList.add('open'); };
     $('imageFile').onchange = async e => {
       const file = e.target.files?.[0]; if (!file) return;
       const fr = new FileReader();
@@ -699,7 +925,14 @@
       fr.readAsDataURL(file);
     };
     $('imageSave').onclick = async () => {
-      if (!imagePending) return; const before = snapshot();
+      if (!imagePending) { toast('Choose an image file first.'); return; } const before = snapshot();
+      const existing = selected && images.find(x => x.id === selected);
+      if (existing) {
+        // Replace the picture but keep its position and width.
+        const w = existing.rect.x1 - existing.rect.x0;
+        existing.data = imagePending.dataUrl; existing.rect.y1 = existing.rect.y0 + w / imagePending.ratio;
+        imagePending = null; $('imageModal').classList.remove('open'); commit(before); drawObjects(); refreshSelection(); await refreshPreview(); return;
+      }
       const w = 150, h = w / imagePending.ratio;
       const id = uniqueId('img_');
       images.push({ id, type: 'image', page: currentPage, order: nextAdditionOrder(), data: imagePending.dataUrl, rect: { x0: 40, y0: 40, x1: 40 + w, y1: 40 + h } });
@@ -707,45 +940,96 @@
       $('imageModal').classList.remove('open'); commit(before); drawObjects(); refreshSelection(); await refreshPreview();
     };
 
-    $('modalDelete').onclick = async () => {
+    async function deleteSelectedObject() {
+      const activeId = selected || overlay?.querySelector('.object.selected')?.dataset.id;
+      if (!activeId) { setStatus('Select an item before deleting.'); return false; }
       const before = snapshot();
-      added = added.filter(x => x.id !== selected); shapes = shapes.filter(x => x.id !== selected); images = images.filter(x => x.id !== selected);
-      selected = null; $('modal').classList.remove('open'); commit(before); drawObjects(); refreshSelection(); await refreshPreview();
-    };
-    $('deleteSelectedBtn').onclick = async () => {
-      if (!selected) return; const before = snapshot();
-      added = added.filter(x => x.id !== selected); shapes = shapes.filter(x => x.id !== selected); images = images.filter(x => x.id !== selected);
-      selected = null; commit(before); drawObjects(); refreshSelection(); await refreshPreview();
-    };
+      const oldCount = added.length + shapes.length + images.length;
+      added = added.filter(x => x.id !== activeId);
+      shapes = shapes.filter(x => x.id !== activeId);
+      images = images.filter(x => x.id !== activeId);
+      const newCount = added.length + shapes.length + images.length;
+      selected = null;
+      $('modal').classList.remove('open');
+      drawObjects(); refreshSelection();
+      if (newCount !== oldCount) {
+        commit(before);
+        await refreshPreview();
+        setStatus('Selected item deleted.');
+        return true;
+      }
+      setStatus('Selected item could not be found.');
+      return false;
+    }
+
+    $('modalDelete').onclick = deleteSelectedObject;
+    $('deleteSelectedBtn').onclick = deleteSelectedObject;
+
+    // Delete/Backspace removes the selected object, but never while typing in a field.
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Delete' && e.key !== 'Backspace') return;
+      const target = e.target;
+      const tag = (target?.tagName || '').toLowerCase();
+      const isTyping = target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
+      if (isTyping) return;
+      if ($('modal').classList.contains('open') && tag !== 'button') return;
+      if (!selected) return;
+      e.preventDefault();
+      deleteSelectedObject();
+    });
 
     $('clearBtn').onclick = async () => { if (!confirm('Clear all?')) return; const before = snapshot(); added=[]; shapes=[]; images=[]; selected=null; commit(before); drawObjects(); refreshSelection(); await refreshPreview(); };
     $('undoBtn').onclick = undo; $('redoBtn').onclick = redo;
 
     $('zoomIn').onclick = async () => { renderScale = Math.min(3, renderScale + .25); await renderCurrentPage(); };
     $('zoomOut').onclick = async () => { renderScale = Math.max(.75, renderScale - .25); await renderCurrentPage(); };
+    $('pageInput').addEventListener('change', async () => {
+      const n = Math.round(Number($('pageInput').value));
+      if (!pages.length) return;
+      if (!Number.isFinite(n) || n < 1 || n > pages.length) { $('pageInput').value = currentPage; toast(`Enter a page between 1 and ${pages.length}.`); return; }
+      if (n !== currentPage) { currentPage = n; selected = null; await renderCurrentPage(); }
+    });
+    $('pageInput').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.dispatchEvent(new Event('change')); });
     $('prevBtn').onclick = async () => { if (currentPage > 1) { currentPage--; selected = null; await renderCurrentPage(); } };
     $('nextBtn').onclick = async () => { if (currentPage < pages.length) { currentPage++; selected = null; await renderCurrentPage(); } };
 
+    // Live preview. A change made while a preview is being generated is never dropped:
+    // it marks the preview as stale and one more round runs with the newest edits.
     async function refreshPreview() {
-      if (previewRunning) return; previewRunning = true; setStatus('Updating preview…');
+      previewQueued = true;
+      if (previewRunning) return previewIdle;
+      previewRunning = true;
+      let finish; previewIdle = new Promise(r => finish = r);
       try {
-        const editsNow = [...added, ...shapes, ...images];
-        const res = await fetch('/api/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pdf: pdfData, edits: editsNow }) });
-        const blob = await res.blob();
-        displayPdfData = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result.split(',')[1]); fr.readAsDataURL(blob); });
-        await renderCurrentPage();
-      } catch (e) { alert('Preview error'); }
-      previewRunning = false; setStatus('');
+        while (previewQueued) {
+          previewQueued = false; setStatus('Updating preview…');
+          const generation = ++previewGeneration;
+          try {
+            const editsNow = [...added, ...shapes, ...images];
+            const res = await fetch('/api/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pdf: pdfData, edits: editsNow }) });
+            if (!res.ok) throw new Error(await errorFrom(res, 'The preview could not be updated.'));
+            const blob = await res.blob();
+            const data = await new Promise((resolve, reject) => { const fr = new FileReader(); fr.onload = () => resolve(fr.result.split(',')[1]); fr.onerror = () => reject(new Error('Could not read the preview.')); fr.readAsDataURL(blob); });
+            if (generation === previewGeneration) { displayPdfData = data; await renderCurrentPage(); }
+            setStatus('');
+          } catch (e) {
+            // Keep showing the last good preview; the editor stays usable.
+            showError(e.message + ' Your last change may not be shown.');
+          }
+        }
+      } finally { previewRunning = false; finish(); }
+      return previewIdle;
     }
 
     $('downloadBtn').onclick = async () => {
       const payloadEdits = [...added, ...shapes, ...images];
-      if (!payloadEdits.length) return alert('No edits to export.');
+      if (!payloadEdits.length) { toast('Add some text, a shape or an image first.'); return; }
       const btn = $('downloadBtn'); btn.disabled = true; btn.textContent = 'Processing…';
       try {
         const res = await fetch('/api/edit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pdf: pdfData, edits: payloadEdits }) });
-        const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'edited.pdf'; a.click();
-      } catch (e) { alert('Export failed'); } finally { btn.disabled = false; btn.textContent = '⬇️ Download PDF'; }
+        if (!res.ok) throw new Error(await errorFrom(res, 'Export failed.'));
+        downloadBlob(await res.blob(), 'edited.pdf'); toast('Your edited PDF is downloading.', 'ok');
+      } catch (e) { showError(e.message); } finally { btn.disabled = false; btn.textContent = '⬇️ Download PDF'; }
     };
 
     // ================= PROTECT PDF LOGIC =================
@@ -774,7 +1058,7 @@
       try {
         const res = await fetch('/api/protect-pdf', { method: 'POST', body: fd });
         if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to protect'); }
-        const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'protected.pdf'; a.click();
+        downloadBlob(await res.blob(), 'protected.pdf');
         $('protectStatus').textContent = '✅ Success! File downloaded.'; $('protectStatus').style.color = '#059669';
       } catch (err) { $('protectStatus').textContent = '❌ ' + err.message; $('protectStatus').style.color = '#dc2626'; } finally { runProtectBtn.disabled = false; runProtectBtn.textContent = 'Encrypt & Download'; }
     };
@@ -805,7 +1089,7 @@
       try {
         const res = await fetch('/api/unlock-pdf', { method: 'POST', body: fd });
         if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to unlock'); }
-        const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'unlocked.pdf'; a.click();
+        downloadBlob(await res.blob(), 'unlocked.pdf');
         $('unlockStatus').textContent = '✅ Success! File downloaded.'; $('unlockStatus').style.color = '#059669';
       } catch (err) { $('unlockStatus').textContent = '❌ ' + err.message; $('unlockStatus').style.color = '#dc2626'; } finally { runUnlockBtn.disabled = false; runUnlockBtn.textContent = 'Remove Password'; }
     };
@@ -855,8 +1139,8 @@
       
       try {
         const res = await fetch('/api/enhance-image', { method: 'POST', body: fd });
-        if (!res.ok) throw new Error('Enhancement failed');
-        const blob = await res.blob(); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'enhanced.jpg'; a.click();
+        if (!res.ok) throw new Error(await errorFrom(res, 'Enhancement failed.'));
+        downloadBlob(await res.blob(), 'enhanced.jpg');
         $('enhanceStatus').textContent = '✅ Enhanced image downloaded.'; $('enhanceStatus').style.color = '#059669';
       } catch (err) {
         $('enhanceStatus').textContent = '❌ ' + err.message; $('enhanceStatus').style.color = '#dc2626';
@@ -925,9 +1209,13 @@
       const file = e.target.files[0]; if (!file) return;
       summarizeUploadZone.querySelector('p').textContent = file.name;
       const fd = new FormData(); fd.append('file', file);
-      const res = await fetch('/api/extract', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (res.ok) { summarizePdfBase64 = data.pdf; runSummarizeBtn.disabled = false; }
+      summarizePdfBase64 = null; runSummarizeBtn.disabled = true; $('summaryStatus').textContent = '';
+      try {
+        const res = await fetch('/api/extract', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not read this PDF.');
+        summarizePdfBase64 = data.pdf; runSummarizeBtn.disabled = false;
+      } catch (err) { $('summaryStatus').textContent = '❌ ' + err.message; $('summaryStatus').style.color = '#dc2626'; }
     };
     runSummarizeBtn.onclick = async () => {
       if (!summarizePdfBase64) return;
@@ -959,7 +1247,7 @@
       generateTailoredBtn.disabled = true; generateTailoredBtn.textContent = '⏳ Analyzing & Rewriting...'; $('tailorStatus').textContent = 'Calling AI and generating PDF...'; $('tailorStatus').style.color = '#4f46e5'; $('tailorResultArea').style.display = 'none'; $('downloadTailoredBtn').style.display = 'none'; $('previewPlaceholder').style.display = 'flex'; $('pdfPreviewImg').style.display = 'none';
       try { const res = await fetch('/api/tailor-resume', { method: 'POST', body: formData }); if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed'); } const data = await res.json();
         $('tailorResultArea').style.display = 'flex'; $('matchScoreText').textContent = data.match_score + '%'; $('matchScoreBar').style.width = data.match_score + '%'; $('matchScoreBar').style.background = data.match_score >= 80 ? '#059669' : (data.match_score >= 60 ? '#d97706' : '#dc2626');
-        if (data.missing_keywords?.length > 0) { $('matchDetails').innerHTML = `<strong>Consider adding:</strong> ${data.missing_keywords.slice(0, 5).join(', ')}`; } else { $('matchDetails').innerHTML = ''; }
+        if (data.missing_keywords?.length > 0) { const strong = document.createElement('strong'); strong.textContent = 'Consider adding: '; $('matchDetails').replaceChildren(strong, document.createTextNode(data.missing_keywords.slice(0, 5).map(String).join(', '))); } else { $('matchDetails').replaceChildren(); }
         if (data.preview_img_b64) { $('pdfPreviewImg').src = `data:image/png;base64,${data.preview_img_b64}`; $('pdfPreviewImg').style.display = 'block'; $('previewPlaceholder').style.display = 'none'; }
         const pdfBytes = Uint8Array.from(atob(data.pdf_b64), c => c.charCodeAt(0)); const blob = new Blob([pdfBytes], { type: 'application/pdf' }); const url = URL.createObjectURL(blob); $('downloadTailoredBtn').href = url; $('downloadTailoredBtn').style.display = 'inline-flex'; $('tailorStatus').textContent = '✅ Success! Preview generated.'; $('tailorStatus').style.color = '#059669';
       } catch (err) { $('tailorStatus').textContent = '❌ ' + err.message; $('tailorStatus').style.color = '#dc2626'; } finally { generateTailoredBtn.disabled = false; generateTailoredBtn.textContent = '🪄 Generate Optimized Resume'; }

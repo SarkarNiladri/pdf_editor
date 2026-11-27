@@ -1,6 +1,7 @@
 import shutil
 import subprocess
 import tempfile
+import threading
 import time
 import uuid
 import zipfile
@@ -71,6 +72,20 @@ def safe_name(name: str) -> str:
     return cleaned or "file"
 
 
+def send_and_delete(path, **kwargs):
+    """send_file() for a generated output, removing the file once it was sent."""
+    path = Path(path)
+
+    @after_this_request
+    def _cleanup(response):
+        try:
+            path.unlink(missing_ok=True)
+        except OSError:
+            pass
+        return response
+    return send_file(str(path), **kwargs)
+
+
 def find_libreoffice():
     candidates = [
         shutil.which("soffice"),
@@ -87,6 +102,11 @@ def find_libreoffice():
     return None
 
 
+# LibreOffice is heavy and a single profile directory can't be shared by parallel
+# runs, so each job gets its own profile and only a couple run at the same time.
+_OFFICE_SLOTS = threading.Semaphore(2)
+
+
 def office_to_pdf(src: Path) -> Path:
     soffice = find_libreoffice()
     if not soffice:
@@ -96,47 +116,64 @@ def office_to_pdf(src: Path) -> Path:
         )
 
     job_dir = Path(tempfile.mkdtemp(prefix="office_pdf_", dir=str(OUTPUT_DIR)))
+    profile_dir = job_dir / "profile"
+    out_dir = job_dir / "out"
+    out_dir.mkdir()
     try:
-        result = subprocess.run(
-            [
-                soffice,
-                "--headless",
-                "--convert-to", "pdf",
-                "--outdir", str(job_dir),
-                str(src),
-            ],
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
-        if result.returncode != 0:
-            raise RuntimeError(
-                (result.stderr or result.stdout or "LibreOffice conversion failed").strip()
+        with _OFFICE_SLOTS:
+            result = subprocess.run(
+                [
+                    soffice,
+                    f"-env:UserInstallation={profile_dir.as_uri()}",
+                    "--headless", "--norestore", "--nolockcheck",
+                    "--convert-to", "pdf",
+                    "--outdir", str(out_dir),
+                    str(src),
+                ],
+                capture_output=True,
+                text=True,
+                timeout=120,
             )
-
-        pdf = job_dir / f"{src.stem}.pdf"
+        pdfs = sorted(out_dir.glob("*.pdf"))
+        if not pdfs:
+            # Only a missing PDF is a failure; LibreOffice prints harmless warnings
+            # (for example about Java) that must not be reported as errors.
+            detail = (result.stderr or result.stdout or "").strip()
+            raise RuntimeError(detail or "LibreOffice did not create a PDF.")
+        pdf = out_dir / f"{src.stem}.pdf"
         if not pdf.is_file():
-            pdfs = list(job_dir.glob("*.pdf"))
-            if not pdfs:
-                raise RuntimeError("LibreOffice did not create a PDF.")
             pdf = pdfs[0]
-
         final = OUTPUT_DIR / f"{uuid.uuid4().hex}.pdf"
         shutil.copy2(pdf, final)
         return final
+    except subprocess.TimeoutExpired:
+        raise RuntimeError("The conversion took too long and was stopped.")
     finally:
         shutil.rmtree(job_dir, ignore_errors=True)
 
 
 def images_to_pdf(files):
+    """One page per image. Pillow decodes the images so WebP/BMP/etc. work too."""
     if not files:
         raise ValueError("No images provided to convert.")
     doc = pymupdf.open()
     try:
         for src in files:
-            pix = pymupdf.Pixmap(str(src))
-            page = doc.new_page(width=pix.width, height=pix.height)
-            page.insert_image(page.rect, filename=str(src))
+            try:
+                with Image.open(src) as im:
+                    from PIL import ImageOps
+                    im = ImageOps.exif_transpose(im)
+                    has_alpha = im.mode in ("RGBA", "LA") or "transparency" in im.info
+                    buf = io.BytesIO()
+                    if has_alpha:
+                        im.convert("RGBA").save(buf, format="PNG")
+                    else:
+                        im.convert("RGB").save(buf, format="JPEG", quality=95)
+                    width, height = im.size
+            except Exception as exc:
+                raise ValueError(f"{Path(src).name} is not a readable image: {exc}")
+            page = doc.new_page(width=width, height=height)
+            page.insert_image(page.rect, stream=buf.getvalue())
         output = OUTPUT_DIR / f"{uuid.uuid4().hex}.pdf"
         doc.save(str(output), garbage=4, deflate=True)
         return output
@@ -205,6 +242,8 @@ def convert_image(src: Path, target_format: str, quality: int = 85,
                   width: int = None, height: int = None, keep_aspect: bool = True,
                   compress_level: int = 6) -> Path:
     """Convert an image with optional resizing and quality/compression settings."""
+    if (target_format or '').lower() not in {'jpeg', 'jpg', 'png', 'webp', 'bmp', 'gif', 'tiff'}:
+        raise ValueError("Unsupported target format.")
     try:
         img = Image.open(src)
     except Exception as e:
@@ -278,6 +317,134 @@ def convert_image(src: Path, target_format: str, quality: int = 85,
     return output
 
 
+
+def _parse_page_ranges(value: str, page_count: int) -> list[list[int]]:
+    """Parse comma-separated page ranges (1-3,5) into zero-based page groups.
+
+    The browser preview (converter.html, parsePageRanges) follows exactly the same
+    rules so what you see is what you get.
+    """
+    value = (value or '').strip().lower()
+    if not value:
+        raise ValueError('Enter at least one page number or range, e.g. 1-3,5.')
+    groups = []
+    for part in value.split(','):
+        part = part.strip()
+        if not part:
+            raise ValueError('Page ranges contain an empty item.')
+        if '-' in part:
+            bits = [x.strip() for x in part.split('-')]
+            if len(bits) != 2 or not all(x.isdigit() for x in bits):
+                raise ValueError(f'Invalid page range: {part}')
+            start, end = int(bits[0]), int(bits[1])
+            if end < start:
+                raise ValueError(f'Page range {part} goes backwards. Write it as {end}-{start}.')
+            if start < 1 or end > page_count:
+                raise ValueError(f'Page range {part} is outside 1-{page_count}.')
+            pages = list(range(start - 1, end))
+        else:
+            if not part.isdigit():
+                raise ValueError(f'Invalid page number: {part}')
+            page = int(part)
+            if page < 1 or page > page_count:
+                raise ValueError(f'Page {page} is outside 1-{page_count}.')
+            pages = [page - 1]
+        groups.append(pages)
+    return groups
+
+
+def _pdf_bytes(doc) -> io.BytesIO:
+    out = io.BytesIO()
+    doc.save(out, garbage=4, deflate=True, deflate_images=True, deflate_fonts=True)
+    out.seek(0)
+    return out
+
+
+def _run_pdf_organization(conversion: str, files: list, **kwargs):
+    if len(files) != 1 or files[0].suffix.lower() != '.pdf':
+        return jsonify({'error': 'Please upload exactly one PDF file.'}), 400
+    try:
+        doc = pymupdf.open(files[0])
+        if doc.is_encrypted:
+            doc.close()
+            return jsonify({'error': 'This PDF is password-protected. Unlock it before using this tool.'}), 400
+        if len(doc) == 0:
+            doc.close()
+            return jsonify({'error': 'The PDF has no pages.'}), 400
+
+        if conversion == 'compress-pdf':
+            original_size = files[0].stat().st_size
+            # Downsample big embedded images (most of the size in scanned/photo PDFs).
+            if hasattr(doc, 'rewrite_images'):
+                try:
+                    doc.rewrite_images(dpi_threshold=200, dpi_target=150, quality=75)
+                except Exception:
+                    pass
+            output = _pdf_bytes(doc)
+            doc.close()
+            if output.getbuffer().nbytes >= original_size:
+                # Never hand back a "compressed" file that is bigger than the original.
+                output = io.BytesIO(files[0].read_bytes())
+            return send_file(output, mimetype='application/pdf', as_attachment=True, download_name='compressed.pdf'), 200
+
+        if conversion == 'split-pdf':
+            ranges = _parse_page_ranges(kwargs.get('page_ranges', ''), len(doc))
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as archive:
+                for index, pages in enumerate(ranges, start=1):
+                    part = pymupdf.open()
+                    for page_no in pages:
+                        part.insert_pdf(doc, from_page=page_no, to_page=page_no)
+                    archive.writestr(f'split_part_{index}.pdf', part.tobytes(garbage=4, deflate=True))
+                    part.close()
+            doc.close()
+            zip_buffer.seek(0)
+            return send_file(zip_buffer, mimetype='application/zip', as_attachment=True, download_name='split_pdfs.zip'), 200
+
+        if conversion == 'rotate-pdf':
+            try:
+                angle = int(kwargs.get('rotation', '90'))
+            except (TypeError, ValueError):
+                angle = 0
+            if angle not in (90, 180, 270):
+                doc.close()
+                return jsonify({'error': 'Rotation must be 90, 180 or 270 degrees.'}), 400
+            page_value = (kwargs.get('page_ranges') or 'all').strip().lower()
+            # Each page is rotated once, even if it is listed twice (for example "1,1").
+            selected = list(range(len(doc))) if page_value == 'all' else sorted({n for group in _parse_page_ranges(page_value, len(doc)) for n in group})
+            for page_no in selected:
+                page = doc[page_no]
+                page.set_rotation((page.rotation + angle) % 360)
+            output = _pdf_bytes(doc)
+            doc.close()
+            return send_file(output, mimetype='application/pdf', as_attachment=True, download_name='rotated.pdf'), 200
+
+        if conversion == 'reorder-pdf':
+            raw_order = (kwargs.get('page_order') or '').strip()
+            try:
+                order = [int(x.strip()) for x in raw_order.split(',') if x.strip()]
+            except ValueError:
+                doc.close()
+                return jsonify({'error': 'Enter page numbers separated by commas, e.g. 3,1,2.'}), 400
+            expected = list(range(1, len(doc) + 1))
+            if len(order) != len(doc) or sorted(order) != expected:
+                doc.close()
+                return jsonify({'error': f'Enter every page exactly once, using numbers 1 to {len(expected)}.'}), 400
+            reordered = pymupdf.open()
+            for page_no in order:
+                reordered.insert_pdf(doc, from_page=page_no - 1, to_page=page_no - 1)
+            output = _pdf_bytes(reordered)
+            reordered.close()
+            doc.close()
+            return send_file(output, mimetype='application/pdf', as_attachment=True, download_name='reordered.pdf'), 200
+
+        doc.close()
+        return jsonify({'error': 'Unsupported PDF organization operation.'}), 400
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
+    except Exception as exc:
+        return jsonify({'error': f'PDF processing failed: {str(exc)}'}), 400
+
 # ----- Conversion router -----
 def _run_conversion(conversion: str, files: list, **kwargs) -> tuple:
     target_format = kwargs.get('target_format')
@@ -293,32 +460,32 @@ def _run_conversion(conversion: str, files: list, **kwargs) -> tuple:
         if len(files) != 1 or files[0].suffix.lower() not in {".doc", ".docx", ".odt"}:
             return (jsonify({"error": "Word to PDF requires one DOC, DOCX or ODT file."}), 400)
         output = office_to_pdf(files[0])
-        return (send_file(output, as_attachment=True, download_name=f"{files[0].stem}.pdf"), 200)
+        return (send_and_delete(output, as_attachment=True, download_name=f"{files[0].stem}.pdf"), 200)
 
     if conversion == "excel-to-pdf":
         if len(files) != 1 or files[0].suffix.lower() not in {".xls", ".xlsx", ".ods"}:
             return (jsonify({"error": "Excel to PDF requires one XLS, XLSX or ODS file."}), 400)
         output = office_to_pdf(files[0])
-        return (send_file(output, as_attachment=True, download_name=f"{files[0].stem}.pdf"), 200)
+        return (send_and_delete(output, as_attachment=True, download_name=f"{files[0].stem}.pdf"), 200)
 
     if conversion == "powerpoint-to-pdf":
         if len(files) != 1 or files[0].suffix.lower() not in {".ppt", ".pptx", ".odp"}:
             return (jsonify({"error": "PowerPoint to PDF requires one PPT, PPTX or ODP file."}), 400)
         output = office_to_pdf(files[0])
-        return (send_file(output, as_attachment=True, download_name=f"{files[0].stem}.pdf"), 200)
+        return (send_and_delete(output, as_attachment=True, download_name=f"{files[0].stem}.pdf"), 200)
 
     if conversion == "pdf-to-word":
         if len(files) != 1 or files[0].suffix.lower() != ".pdf":
             return (jsonify({"error": "PDF to Word requires exactly one PDF."}), 400)
         output = pdf_to_word(files[0])
-        return (send_file(output, as_attachment=True, download_name=f"{files[0].stem}.docx"), 200)
+        return (send_and_delete(output, as_attachment=True, download_name=f"{files[0].stem}.docx"), 200)
 
     if conversion == "images-to-pdf":
         allowed = {".png", ".jpg", ".jpeg", ".webp"}
         if any(src.suffix.lower() not in allowed for src in files):
             return (jsonify({"error": "Images to PDF accepts PNG, JPG, JPEG and WebP."}), 400)
         output = images_to_pdf(files)
-        return (send_file(output, as_attachment=True, download_name="converted.pdf"), 200)
+        return (send_and_delete(output, as_attachment=True, download_name="converted.pdf"), 200)
 
     if conversion == "pdf-to-images":
         if len(files) != 1 or files[0].suffix.lower() != ".pdf":
@@ -335,11 +502,14 @@ def _run_conversion(conversion: str, files: list, **kwargs) -> tuple:
             return response
         return (send_file(zip_buffer, as_attachment=True, download_name="images.zip", mimetype='application/zip'), 200)
 
+    if conversion in {"compress-pdf", "split-pdf", "rotate-pdf", "reorder-pdf"}:
+        return _run_pdf_organization(conversion, files, **kwargs)
+
     if conversion == "merge-pdf":
         if len(files) < 2 or any(src.suffix.lower() != ".pdf" for src in files):
             return (jsonify({"error": "Merge PDFs requires at least two PDF files."}), 400)
         output = merge_pdfs(files)
-        return (send_file(output, as_attachment=True, download_name="merged.pdf"), 200)
+        return (send_and_delete(output, as_attachment=True, download_name="merged.pdf"), 200)
 
     if conversion == "image-to-image":
         if not target_format:
@@ -359,6 +529,6 @@ def _run_conversion(conversion: str, files: list, **kwargs) -> tuple:
         ext = target_format.lower()
         if ext == 'jpeg':
             ext = 'jpg'
-        return (send_file(output, as_attachment=True, download_name=f"converted.{ext}"), 200)
+        return (send_and_delete(output, as_attachment=True, download_name=f"converted.{ext}"), 200)
 
     return (jsonify({"error": f"Unsupported conversion: {conversion}"}), 400)

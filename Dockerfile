@@ -1,6 +1,8 @@
-FROM python:3.11-slim
+FROM python:3.13-slim
 
-# Install system dependencies, including full LibreOffice and fonts
+# Install system dependencies, including full LibreOffice and fonts.
+# fonts-noto-core gives Add Text / Edit Existing Text glyphs for Indian scripts,
+# the rupee sign, curly quotes, etc.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libreoffice \
     libreoffice-writer \
@@ -8,6 +10,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libreoffice-impress \
     fonts-liberation \
     fonts-dejavu-core \
+    fonts-noto-core \
+    libgl1 \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 WORKDIR /app
