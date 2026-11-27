@@ -1,6 +1,7 @@
 import os
 import io
 import base64
+import hashlib
 import binascii
 import math
 import tempfile
@@ -79,6 +80,55 @@ def too_large(_):
 @app.route('/')
 def index():
     return send_file(PROJECT_ROOT / 'index.html', mimetype='text/html')
+
+
+# ---------- Installable app (PWA) ----------
+STATIC_DIR = PROJECT_ROOT / 'static'
+# Files the service worker keeps for offline use. Their combined hash names the
+# cache, so a deploy that changes any of them replaces the cached copies.
+PWA_SHELL_FILES = ('index.html', 'edit_existing_text.html', 'converter.html',
+                   'static/theme.css', 'static/pwa.js', 'static/offline.html',
+                   'static/manifest.webmanifest', 'static/sw.js')
+
+
+def _pwa_cache_version():
+    digest = hashlib.sha256()
+    for rel in PWA_SHELL_FILES:
+        path = PROJECT_ROOT / rel
+        if path.is_file():
+            digest.update(rel.encode())
+            digest.update(path.read_bytes())
+    return digest.hexdigest()[:12]
+
+
+@app.get('/sw.js')
+def service_worker():
+    # Served from the site root so it can control every page (scope '/').
+    script = (STATIC_DIR / 'sw.js').read_text(encoding='utf-8')
+    script = script.replace('__CACHE_VERSION__', _pwa_cache_version())
+    resp = app.response_class(script, mimetype='application/javascript')
+    resp.headers['Cache-Control'] = 'no-cache'
+    resp.headers['Service-Worker-Allowed'] = '/'
+    return resp
+
+
+@app.get('/manifest.webmanifest')
+def web_manifest():
+    resp = send_file(STATIC_DIR / 'manifest.webmanifest', mimetype='application/manifest+json')
+    resp.headers['Cache-Control'] = 'no-cache'
+    return resp
+
+
+@app.get('/favicon.ico')
+def favicon():
+    return send_file(STATIC_DIR / 'icons' / 'favicon.ico', mimetype='image/x-icon', max_age=86400)
+
+
+@app.get('/apple-touch-icon.png')
+@app.get('/apple-touch-icon-precomposed.png')
+def apple_touch_icon():
+    # iOS looks here when a page has no <link rel="apple-touch-icon">.
+    return send_file(STATIC_DIR / 'icons' / 'apple-touch-icon.png', mimetype='image/png', max_age=86400)
 
 
 # ---------- PDF text extraction ----------

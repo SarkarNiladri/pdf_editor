@@ -1,3 +1,11 @@
+# Changes: install as a phone app (November 2026)
+
+- **Installable app (PWA):** web app manifest (`/manifest.webmanifest`), app icons (192/512, maskable, 180 px iOS touch icon, favicon; regenerate with `scripts/make_icons.py`), theme colour and iOS/Android meta tags on every page.
+- **Offline app shell:** a service worker (`/sw.js`, from `static/sw.js`) keeps the pages, CSS, JS, icons and fonts so already-opened pages load without a connection, with an offline fallback page. It only handles GET requests and never touches `/api/` routes, so PDF uploads and results are never cached. The cache name is a hash of the shell files, so each deploy replaces it.
+- **Install button:** "Install app" in the home header on Android/desktop Chrome and Edge; on iPhone/iPad it shows the Share → Add to Home Screen steps (also shown once automatically on the home page).
+- **Phones:** Edit Existing Text gets a two-row top bar, a fit-to-width page, bigger tap areas for small text, and the side panel becomes a bottom sheet that opens when you tap text and collapses to a one-line summary. The keyboard no longer pops up on every tap. In the installed iPhone app, Download opens the share sheet (Save to Files). The home page shows tools as a compact list, inputs are 16 px so iOS does not zoom, and editor handles have larger touch targets.
+- A small banner appears while offline, since opening and saving PDFs needs the server.
+
 # Changes: review fixes and UI refresh (November 2026)
 
 ## Critical fixes
