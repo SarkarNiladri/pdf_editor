@@ -2,8 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>PDF Suite</title>
+  <meta name="theme-color" content="#5b4cf0">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="PDF Suite">
+  <meta name="application-name" content="PDF Suite">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/static/icons/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+  <script src="/static/pwa.js" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
@@ -186,13 +197,14 @@
   </style>
   <link rel="stylesheet" href="/static/theme.css">
 </head>
-<body>
+<body data-pwa-tip="auto">
 
   <header class="app-header">
     <div class="brand" onclick="goHome()">
       <span class="brand-icon">▣</span> PDF Suite
     </div>
-    <button class="btn-home" id="globalHomeBtn" onclick="goHome()">🏠 Back to Home</button>
+    <button class="btn-home" id="globalHomeBtn" onclick="goHome()">🏠 <span class="hide-sm">Back to </span>Home</button>
+    <button type="button" class="pwa-install" data-pwa-install hidden title="Install PDF Suite on this device">⬇ Install app</button>
   </header>
 
   <div class="sidebar-backdrop" id="sidebarBackdrop"></div>

@@ -2,8 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Edit Existing Text – PDF Suite</title>
+  <meta name="theme-color" content="#5b4cf0">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="PDF Suite">
+  <meta name="application-name" content="PDF Suite">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/static/icons/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+  <script src="/static/pwa.js" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/theme.css">
@@ -113,15 +124,56 @@
     .toast{background:#0f172a;color:#fff;padding:10px 14px;border-radius:12px;font-size:13px;box-shadow:0 20px 50px -20px rgba(0,0,0,.5);transition:opacity .3s}
     .toast.error{background:#b91c1c}.toast.ok{background:#0f9f6e}.toast.hide{opacity:0}
 
+    .sheet-handle,.search-toggle{display:none}
+
+    /* ---------- Phones: compact two-row top bar, panel becomes a bottom sheet ---------- */
     @media(max-width:900px){
-      body{overflow:auto}
-      .topbar{flex-wrap:wrap;height:auto;padding:10px 12px;gap:8px}
-      .center{order:3;margin:0}
-      .search{order:4;width:100%}
+      html,body{height:100%;height:100dvh}
+      .topbar{flex-wrap:wrap;height:auto;flex:0 0 auto;padding:8px max(10px,env(safe-area-inset-right)) 8px max(10px,env(safe-area-inset-left));gap:6px;row-gap:8px}
+      .topbar::before{content:'';flex-basis:100%;order:1;height:0}
+      .logo{display:none}
+      .back{width:40px;height:40px;flex:0 0 auto}
+      .file{flex:1;max-width:none}
+      .icon{width:40px;height:40px}
+      .search-toggle{display:grid}
+      .primary#downloadBtn{padding:10px 14px}
+      .center{order:2;margin:0;gap:6px}
+      .pill button{min-width:34px;min-height:34px;padding:6px 8px;font-size:16px}
+      .pill .val{padding:6px 9px}
+      #undoBtn{order:3;margin-left:auto}
+      #redoBtn{order:3}
+      .search{order:4;width:100%;display:none}
+      .topbar.search-open .search{display:block}
+      .search input{height:42px;font-size:16px}
+      .results{width:100%;max-height:50dvh}
       .main{flex-direction:column}
-      .stage{min-height:60vh;padding:16px}
-      .side{width:100%;flex:none;border-left:0;border-top:1px solid #e6e8f0}
-      .results{width:100%}
+      .stage{flex:1;min-height:0;padding:12px 12px 16px}
+      .drop{margin-top:24px;padding:36px 18px}
+      .hint{margin-top:12px;font-size:12px}
+      /* bottom sheet */
+      .side{width:100%;flex:0 0 auto;max-height:55%;border-left:0;border-top:1px solid #e6e8f0;border-radius:18px 18px 0 0;box-shadow:0 -14px 40px -24px rgba(30,27,75,.45);padding:0 16px calc(14px + env(safe-area-inset-bottom));gap:12px;margin-top:-10px;z-index:5;overscroll-behavior:contain}
+      body:not(.has-file) .side{display:none}
+      body.editing .hint{display:none}
+      .sheet-handle{display:flex;flex-direction:column;align-items:center;gap:6px;position:sticky;top:0;z-index:2;width:calc(100% + 32px);margin:0 -16px;padding:8px 16px 10px;border:0;background:#fff;color:#334155;font-size:13px;font-weight:600;text-align:center}
+      .sheet-handle::before{content:'';width:40px;height:5px;border-radius:999px;background:#d5d8e4}
+      .sheet-handle b{font-weight:600;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .side.collapsed{overflow:hidden}
+      .side.collapsed > :not(.sheet-handle){display:none !important}
+      .side .empty-side{display:none}
+      .changes{margin-top:4px}
+      .orig{max-height:72px;overflow:auto}
+      textarea.inp{font-size:16px;min-height:56px}
+      .apply{padding:13px;font-size:15px}
+      .btn{min-height:40px;padding:9px 12px;font-size:13px}
+      .choice .row .btn{flex:1}
+      .opt select{font-size:16px;min-height:42px}
+      .chg{padding:10px 0}
+      .chg .rev{width:36px;height:36px}
+    }
+    /* Touch: give small text a finger-sized tap area without moving its outline. */
+    @media(pointer:coarse){
+      .hit::before{content:'';position:absolute;left:-4px;right:-4px;top:50%;height:max(100%,22px);transform:translateY(-50%)}
+      .sel{border-width:2.5px}
     }
   </style>
 </head>
@@ -139,6 +191,7 @@
       <input id="searchInput" type="search" placeholder="Find text in this PDF…" autocomplete="off">
       <div class="results" id="results" hidden></div>
     </div>
+    <button class="icon search-toggle" id="searchToggle" title="Find text" aria-label="Find text" aria-expanded="false" hidden>⌕</button>
     <button class="icon" id="openBtn" title="Open another PDF" hidden>📂</button>
     <button class="icon" id="undoBtn" title="Undo" disabled hidden>↶</button>
     <button class="icon" id="redoBtn" title="Redo" disabled hidden>↷</button>
@@ -160,6 +213,7 @@
     </section>
 
     <aside class="side" id="side">
+      <button type="button" class="sheet-handle" id="sheetHandle" aria-controls="side" aria-expanded="true"><b id="sheetTitle">Tap text on the page to edit it</b></button>
       <div id="noSelection" class="empty-side">Open a PDF, then click any text on the page (or search for it) to change it.</div>
 
       <div id="editor" hidden>
@@ -241,6 +295,26 @@
   const snapshot = () => JSON.stringify([...pending.entries()]);
   function pushHistory(before) { if (before !== snapshot()) { undoStack.push(before); redoStack = []; } }
   const scale = () => BASE * zoom;  // CSS px per PDF point
+  const compact = matchMedia('(max-width: 900px)');   // phone layout: bottom sheet
+  const touch = matchMedia('(pointer: coarse)').matches;
+  const tapWord = touch ? 'Tap' : 'Click';
+
+  // ---------- bottom sheet (phones) ----------
+  function setSheet(open) {
+    document.body.classList.toggle('editing', !!selected);
+    $('side').classList.toggle('collapsed', !open);
+    $('sheetHandle').setAttribute('aria-expanded', String(open));
+  }
+  function updateSheetTitle() {
+    const n = pending.size, changes = n ? ` · ${n} change${n === 1 ? '' : 's'}` : '';
+    $('sheetTitle').textContent = selected ? `Editing “${selected.text.trim()}”` : `${tapWord} text on the page to edit it${changes}`;
+  }
+  $('sheetHandle').addEventListener('click', () => setSheet($('side').classList.contains('collapsed')));
+  $('searchToggle').addEventListener('click', () => {
+    const open = $('searchBox').closest('.topbar').classList.toggle('search-open');
+    $('searchToggle').setAttribute('aria-expanded', String(open));
+    if (open) $('searchInput').focus(); else $('results').hidden = true;
+  });
 
   // ---------- open a file ----------
   $('dropZone').addEventListener('click', () => $('pdfInput').click());
@@ -261,10 +335,11 @@
       pages = data.pages || []; allSpans = pages.flatMap(p => p.spans || []); pageNumber = 1; zoom = fitZoom();
       $('fileName').textContent = file.name;
       $('fileSub').textContent = `${pages.length} page${pages.length === 1 ? '' : 's'} · ${allSpans.length} text items`;
-      ['navControls','searchBox','openBtn','undoBtn','redoBtn','downloadBtn'].forEach(id => $(id).hidden = false);
+      ['navControls','searchBox','searchToggle','openBtn','undoBtn','redoBtn','downloadBtn'].forEach(id => $(id).hidden = false);
+      document.body.classList.add('has-file');
       $('loading').hidden = true; $('page').hidden = false; $('hint').hidden = false;
-      $('hint').textContent = allSpans.length ? 'Click any text on the page to edit it' : 'No selectable text found. This looks like a scanned PDF, which needs OCR first.';
-      $('noSelection').textContent = 'Click any text on the page (or search for it) to change it.';
+      $('hint').textContent = allSpans.length ? `${tapWord} any text on the page to edit it` : 'No selectable text found. This looks like a scanned PDF, which needs OCR first.';
+      $('noSelection').textContent = `${tapWord} any text on the page (or search for it) to change it.`;
       deselect(); renderChanges(); await renderPage(); setBusy(false);
     } catch (err) {
       $('loading').hidden = true; if (!sourceFile) $('dropZone').hidden = false; else $('page').hidden = false;
@@ -273,14 +348,15 @@
   }
   function fitZoom() {
     const p = pages[0]; if (!p) return 1;
-    const avail = $('stage').clientWidth - 52;
-    return Math.max(0.5, Math.min(1.25, Math.floor((avail / (p.width * BASE)) * 20) / 20));
+    const stage = $('stage'), cs = getComputedStyle(stage);
+    const avail = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    return Math.max(0.25, Math.min(1.25, Math.floor((avail / (p.width * BASE)) * 20) / 20));
   }
 
   // ---------- page rendering ----------
   async function renderPage() {
     const page = pages[pageNumber - 1]; if (!page) return;
-    $('pageLabel').textContent = `Page ${pageNumber} of ${pages.length}`;
+    $('pageLabel').textContent = compact.matches ? `${pageNumber} / ${pages.length}` : `Page ${pageNumber} of ${pages.length}`;
     $('prevPage').disabled = pageNumber <= 1; $('nextPage').disabled = pageNumber >= pages.length;
     $('zoomLabel').textContent = Math.round(zoom * 100) + '%';
     $('page').style.width = page.width * scale() + 'px'; $('page').style.height = page.height * scale() + 'px';
@@ -323,12 +399,12 @@
   $('nextPage').addEventListener('click', () => goPage(pageNumber + 1));
   async function goPage(n) { if (n < 1 || n > pages.length || n === pageNumber) return; pageNumber = n; if (selected?.page !== n) deselect(); $('stage').scrollTop = 0; await safeRender(); }
   $('zoomIn').addEventListener('click', () => { zoom = Math.min(2.5, +(zoom + 0.25).toFixed(2)); safeRender(); });
-  $('zoomOut').addEventListener('click', () => { zoom = Math.max(0.5, +(zoom - 0.25).toFixed(2)); safeRender(); });
+  $('zoomOut').addEventListener('click', () => { zoom = Math.max(0.25, +(zoom - 0.25).toFixed(2)); safeRender(); });
 
   // ---------- search ----------
   $('searchInput').addEventListener('input', showResults);
   $('searchInput').addEventListener('focus', showResults);
-  document.addEventListener('click', e => { if (!e.target.closest('#searchBox')) $('results').hidden = true; });
+  document.addEventListener('click', e => { if (!e.target.closest('#searchBox, #searchToggle')) $('results').hidden = true; });
   function showResults() {
     const q = $('searchInput').value.trim().toLowerCase(); const box = $('results');
     if (!q) { box.hidden = true; return; }
@@ -338,14 +414,19 @@
     hits.forEach(s => {
       const b = document.createElement('button'); b.textContent = pending.get(s.id)?.new_text || s.text;
       const m = document.createElement('small'); m.textContent = `Page ${s.page}${pending.has(s.id) ? ' · changed' : ''}`; b.append(m);
-      b.addEventListener('click', async () => { box.hidden = true; if (s.page !== pageNumber) { pageNumber = s.page; await safeRender(); } selectSpan(s, true); });
+      b.addEventListener('click', async () => { box.hidden = true; closeSearchOnPhone(); if (s.page !== pageNumber) { pageNumber = s.page; await safeRender(); } selectSpan(s, true); });
       box.append(b);
     });
     box.hidden = false;
   }
 
+  function closeSearchOnPhone() {
+    if (!compact.matches) return;
+    $('searchBox').closest('.topbar').classList.remove('search-open'); $('searchToggle').setAttribute('aria-expanded', 'false');
+  }
+
   // ---------- selection & editing ----------
-  function deselect() { selected = null; moved = null; $('editor').hidden = true; $('noSelection').hidden = false; hideOverflow(); positionSel(); setBusy(busy); }
+  function deselect() { selected = null; moved = null; $('editor').hidden = true; $('noSelection').hidden = false; hideOverflow(); positionSel(); setBusy(busy); updateSheetTitle(); setSheet(false); }
   function selectSpan(span, scrollIntoView=false) {
     if (selected?.id !== span.id) moved = null;
     selected = span; const e = pending.get(span.id);
@@ -357,9 +438,11 @@
     $('overflowMode').value = e?.overflow || 'auto';
     $('removeOriginal').checked = e?.remove_original !== false;
     hideOverflow(); showMsg(e ? 'This text has been changed. Edit it again, or undo it under Changes.' : '', 'info');
-    positionSel(); setBusy(busy);
+    positionSel(); setBusy(busy); updateSheetTitle(); setSheet(true);
     if (scrollIntoView) $('sel').scrollIntoView({ block:'center', behavior:'smooth' });
-    $('replacementText').focus(); $('replacementText').select();
+    else if (compact.matches) requestAnimationFrame(() => $('sel').scrollIntoView({ block:'nearest', inline:'nearest' }));
+    // On phones the keyboard would cover the page on every tap, so let the person tap the box when ready.
+    if (!touch) { $('replacementText').focus(); $('replacementText').select(); }
   }
   $('replacementText').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); applyCurrent(); } });
 
@@ -460,7 +543,7 @@
       row.addEventListener('click', async () => { const sp = allSpans.find(x => x.id === e.id); if (!sp) return; if (sp.page !== pageNumber) { pageNumber = sp.page; await safeRender(); } selectSpan(sp, true); });
       row.append(t, rev); list.append(row);
     });
-    setBusy(busy);
+    setBusy(busy); updateSheetTitle();
   }
   async function afterStateChange() { moved = null; renderChanges(); drawHits(); if (selected) selectSpan(selected); }
   async function mutate(change) {
@@ -482,13 +565,17 @@
     if (!pending.size || busy) return; setBusy(true); $('downloadBtn').textContent = 'Preparing…';
     try {
       const { blob } = await requestPdf('/api/text-edit/download');
-      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url;
-      a.download = (sourceFile.name.replace(/\.pdf$/i, '') || 'document') + '-edited.pdf';
-      document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
-      toast('Your edited PDF is downloading.', 'ok');
+      const name = (sourceFile.name.replace(/\.pdf$/i, '') || 'document') + '-edited.pdf';
+      const how = window.pdfSuiteSaveFile ? await window.pdfSuiteSaveFile(blob, name) : fallbackSave(blob, name);
+      if (how === 'downloaded') toast('Your edited PDF is downloading.', 'ok');
     } catch (err) { toast(err.message, 'error'); }
     finally { $('downloadBtn').textContent = '⬇ Download'; setBusy(false); }
   });
+  function fallbackSave(blob, name) {
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = name;
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); return 'downloaded';
+  }
+  compact.addEventListener?.('change', () => { if (pages.length) safeRender(); });
   window.addEventListener('beforeunload', e => { if (pending.size) { e.preventDefault(); e.returnValue = ''; } });
 })();
 </script>

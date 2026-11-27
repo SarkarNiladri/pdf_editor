@@ -173,3 +173,41 @@ body { font-family: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, '
 .viewer-wrap { justify-content: flex-start !important; }
 .page-container-pdf { flex: 0 0 auto !important; margin: 0 auto; }
 a.btn { text-decoration: none !important; }
+
+/* ---------- Phones and the installed app ---------- */
+.app-header { gap: 8px; padding-left: max(24px, env(safe-area-inset-left)) !important; padding-right: max(24px, env(safe-area-inset-right)) !important; }
+.app-header .brand { margin-right: auto; }
+.app-header .btn-home { margin-left: 0 !important; min-height: 40px; }
+.app-header .pwa-install[hidden] { display: none !important; }
+#homeView { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
+@media (max-width: 640px) {
+  .app-header { padding-left: max(14px, env(safe-area-inset-left)) !important; padding-right: max(14px, env(safe-area-inset-right)) !important; }
+  .brand { font-size: 18px !important; }
+  .hide-sm { display: none; }
+  .btn-home, .app-header .pwa-install { padding: 8px 12px !important; font-size: 13px !important; }
+  .home-header { margin-bottom: 20px !important; }
+  .tool-search-wrap input { font-size: 16px !important; height: 48px !important; }  /* 16px stops iOS zooming in on focus */
+  .tool-tab { min-height: 40px; }
+  /* Compact list of tools: icon on the left, name and description beside it. */
+  .tool-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+  .tool-card { display: grid !important; grid-template-columns: 44px 1fr; column-gap: 14px; row-gap: 2px !important; align-items: center; padding: 14px 40px 14px 14px !important; }
+  .tool-card .tool-icon { grid-row: span 2; width: 44px !important; height: 44px !important; font-size: 21px !important; }
+  .tool-card h3 { align-self: end; }
+  .tool-card p { align-self: start; }
+  .tool-card::after { top: 50%; right: 16px; transform: translateY(-50%); }
+  .modal-dialog textarea, .modal-dialog input[type="text"], .modal-dialog input[type="number"], .modal-dialog select { font-size: 16px !important; }
+  .modal-dialog { padding: 20px 16px !important; }
+  .toolbar { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .toolbar > * { flex-shrink: 0; }
+  .page-container { padding-bottom: calc(30px + env(safe-area-inset-bottom)) !important; }
+  .toast-box { left: 12px !important; right: 12px !important; bottom: calc(12px + env(safe-area-inset-bottom)) !important; max-width: none !important; transform: none !important; }
+}
+/* Touch screens: no hover lift, and bigger grab areas for the editor handles. */
+@media (hover: none) {
+  .tool-card:hover { transform: none !important; box-shadow: var(--shadow-sm) !important; border-color: var(--line) !important; }
+  .tool-card:active { background: var(--accent-soft) !important; }
+}
+@media (pointer: coarse) {
+  .resize-handle::before, .rotate-handle::before { content: ''; position: absolute; inset: -12px; border-radius: 50%; }
+  .btn { min-height: 40px; }
+}
