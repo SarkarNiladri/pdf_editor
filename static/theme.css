@@ -368,3 +368,6 @@ body:has(#homeView.active) .app-header .pwa-install {
   .card-panel > h2:first-child + p { margin: 0 -16px 18px !important; padding: 0 16px 18px; }
 }
 input[type="range"], input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
+
+/* Stacked image tools on phones: no empty gap between the controls and the preview. */
+@media (max-width: 900px) { .split-grid { align-content: start !important; height: auto !important; } .split-grid > .card-panel { height: auto !important; } }
