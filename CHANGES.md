@@ -1,3 +1,9 @@
+# Changes: new look (November 2026)
+
+- **Home page:** purple hero with the search box overlapping it, simpler category chips, and tools grouped under colored section headings (Edit, AI tools, Organize, Convert, Image, Security). Each category has its own color on the card edge and icon.
+- **Phones and the installed app:** tools show **two per row** as compact tiles, a highlighted AI Resume Tailor card sits above the list, and a bottom bar jumps to Home, Edit, Convert, AI or Image tools.
+- **Tool pages:** each tool's title and description sit in a colored header band, with larger primary buttons and purple sliders and checkboxes.
+- Search, category filters and every tool work as before. Section headings hide when their category has no matching tools.
 # Changes: invisible text replacement and image previews (November 2026)
 
 - **Edit Existing Text, no more box behind edited text:** the cover behind replaced text now matches the real page. When the old glyphs are deleted from the PDF nothing is painted over them at all; otherwise the cover is the page's own flat colour, or a picture of the page rendered without the old text (gradients, textures, images), or, for scanned text behind an OCR layer, the colour of the surrounding paper (`page_background.py`). The background option defaults to "Match the page automatically"; picking a colour still works. Requests that send the old default `#ffffff` are treated as automatic.
