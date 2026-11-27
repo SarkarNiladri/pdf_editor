@@ -1,3 +1,11 @@
+# Changes: invisible text replacement and image previews (November 2026)
+
+- **Edit Existing Text, no more box behind edited text:** the cover behind replaced text now matches the real page. When the old glyphs are deleted from the PDF nothing is painted over them at all; otherwise the cover is the page's own flat colour, or a picture of the page rendered without the old text (gradients, textures, images), or, for scanned text behind an OCR layer, the colour of the surrounding paper (`page_background.py`). The background option defaults to "Match the page automatically"; picking a colour still works. Requests that send the old default `#ffffff` are treated as automatic.
+- **Enhance Image live preview:** the preview updates as the sliders move (debounced, on a copy at most 1200 px long, with the same Pillow adjustments as the download), with After/Before comparison and a Reset button. New endpoint `POST /api/enhance-image/preview`. Nothing downloads until Apply & Download.
+- **Remove Background preview:** the result is shown first and is no longer auto-downloaded. Choose a transparent, white, custom-colour or blurred-original background, clean up halo edges and soften the outline, compare with the original, then Download PNG.
+- Phone photos are turned upright using their EXIF rotation in both image tools.
+- The previews live in `static/image-tools.js`, which attaches to the existing tool views by element id (see `tests/test_image_previews.py`, which fails if a redesign drops one of those ids).
+
 # Changes: install as a phone app (November 2026)
 
 - **Installable app (PWA):** web app manifest (`/manifest.webmanifest`), app icons (192/512, maskable, 180 px iOS touch icon, favicon; regenerate with `scripts/make_icons.py`), theme colour and iOS/Android meta tags on every page.

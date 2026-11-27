@@ -254,8 +254,9 @@
               </select>
             </div>
             <div class="opt">
-              <label for="backgroundColor">Background colour behind the old text</label>
-              <input id="backgroundColor" type="color" value="#ffffff">
+              <label for="backgroundColor">Background behind the old text</label>
+              <label class="check"><input type="checkbox" id="backgroundAuto" checked> Match the page automatically (no box on coloured or textured pages)</label>
+              <input id="backgroundColor" type="color" value="#ffffff" disabled title="Untick “Match the page automatically” to pick a colour">
             </div>
             <label class="check"><input type="checkbox" id="removeOriginal" checked> Delete the old text from the PDF, so it can't be copied, searched or read by ATS software</label>
           </div>
@@ -434,7 +435,9 @@
     $('originalText').textContent = span.text;
     $('metaLine').textContent = `${span.font} · ${span.size} pt · ${span.color}` + (pages.length > 1 ? ` · page ${span.page}` : '');
     $('replacementText').value = e?.new_text || span.text;
-    $('backgroundColor').value = e?.background || '#ffffff';
+    const bgAuto = !e?.background || e.background === 'auto';
+    $('backgroundAuto').checked = bgAuto; $('backgroundColor').disabled = bgAuto;
+    $('backgroundColor').value = bgAuto ? '#ffffff' : e.background;
     $('overflowMode').value = e?.overflow || 'auto';
     $('removeOriginal').checked = e?.remove_original !== false;
     hideOverflow(); showMsg(e ? 'This text has been changed. Edit it again, or undo it under Changes.' : '', 'info');
@@ -444,12 +447,13 @@
     // On phones the keyboard would cover the page on every tap, so let the person tap the box when ready.
     if (!touch) { $('replacementText').focus(); $('replacementText').select(); }
   }
+  $('backgroundAuto').addEventListener('change', e => { $('backgroundColor').disabled = e.target.checked; });
   $('replacementText').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); applyCurrent(); } });
 
   function editFromForm() {
     const { offset_x, offset_y } = currentOffsets();
     return { id:selected.id, page:selected.page, bbox:selected.bbox, original_text:selected.text,
-      new_text:$('replacementText').value.replace(/[\r\n]+/g, ' '), background:$('backgroundColor').value,
+      new_text:$('replacementText').value.replace(/[\r\n]+/g, ' '), background:$('backgroundAuto').checked ? 'auto' : $('backgroundColor').value,
       overflow:$('overflowMode').value, remove_original:$('removeOriginal').checked, offset_x, offset_y };
   }
   async function requestPdf(endpoint) {

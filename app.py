@@ -14,13 +14,14 @@ from collections import defaultdict, deque
 from datetime import datetime
 from functools import wraps
 from pathlib import Path
-from PIL import ImageEnhance, Image
+from PIL import ImageEnhance, Image, ImageOps
 
 from flask import Flask, request, jsonify, send_file
 import pymupdf as fitz
 from dotenv import load_dotenv
 
 import textfonts
+import page_background
 
 # openai / pdfplumber / dateparser are only needed by the AI + ATS tools, so they
 # are imported lazily. The rest of the suite starts even if they are missing.
@@ -87,7 +88,7 @@ STATIC_DIR = PROJECT_ROOT / 'static'
 # Files the service worker keeps for offline use. Their combined hash names the
 # cache, so a deploy that changes any of them replaces the cached copies.
 PWA_SHELL_FILES = ('index.html', 'edit_existing_text.html', 'converter.html',
-                   'static/theme.css', 'static/pwa.js', 'static/offline.html',
+                   'static/theme.css', 'static/pwa.js', 'static/image-tools.js', 'static/offline.html',
                    'static/manifest.webmanifest', 'static/sw.js')
 
 
@@ -1062,7 +1063,7 @@ def _apply_existing_text_edits(raw, edits, return_info=False):
         raise ValueError('You can replace up to 100 text spans in one operation.')
 
     doc = fitz.open(stream=raw, filetype='pdf')
-    info = {'removed': 0, 'covered_only': 0, 'fits': [], 'fit_by_id': {}}
+    info = {'removed': 0, 'covered_only': 0, 'fits': [], 'fit_by_id': {}, 'covers': {}}
     try:
         if doc.needs_pass:
             raise ValueError('This PDF is password protected. Unlock it before editing existing text.')
@@ -1095,10 +1096,16 @@ def _apply_existing_text_edits(raw, edits, return_info=False):
             bbox = _precise_text_ink_bbox(page, span)
             if bbox.is_empty or bbox.is_infinite or bbox.width <= 0 or bbox.height <= 0:
                 raise ValueError('The selected text has an unsupported bounding box.')
-            fill_value = edit.get('background', '#ffffff')
-            if not isinstance(fill_value, str) or not re.fullmatch(r'#[0-9a-fA-F]{6}', fill_value):
+            fill_value = edit.get('background') or 'auto'
+            if not isinstance(fill_value, str):
                 raise ValueError('Invalid background color.')
-            fill = tuple(int(fill_value[i:i + 2], 16) / 255 for i in (1, 3, 5))
+            # "auto" (and the old default white) means: match the real page background.
+            if fill_value.lower() in ('auto', '#ffffff'):
+                fill_value, fill = 'auto', None
+            elif re.fullmatch(r'#[0-9a-fA-F]{6}', fill_value):
+                fill = tuple(int(fill_value[i:i + 2], 16) / 255 for i in (1, 3, 5))
+            else:
+                raise ValueError('Invalid background color.')
             glyph_rects = _span_glyph_rects(page, span)
             overlay_rect = _pixel_whiteout_overlay(page, span, fill_value, glyph_rects)
 
@@ -1152,10 +1159,27 @@ def _apply_existing_text_edits(raw, edits, return_info=False):
                 info['removed'] += len(items)
         info['covered_only'] = len(prepared) - info['removed']
 
-        # 2) Cover whatever is left (also hides any ink the redaction missed).
-        for item in prepared:
-            doc[item['page_index']].draw_rect(_to_page_rect(item['overlay_rect'], doc[item['page_index']]),
-                                              color=None, fill=item['fill'], overlay=True, width=0)
+        # 2) Hide whatever is left of the old text. With an automatic background
+        #    nothing is drawn when the glyphs are really gone; otherwise the cover
+        #    is the page's own colour or a picture of the page without the text.
+        original = None
+        try:
+            for item in prepared:
+                page = doc[item['page_index']]
+                rect = _to_page_rect(item['overlay_rect'], page)
+                if item['fill'] is not None:
+                    page.draw_rect(rect, color=None, fill=item['fill'], overlay=True, width=0)
+                    continue
+                if original is None:
+                    original = fitz.open(stream=raw, filetype='pdf')
+                removed = item['remove_original'] and removed_pages.get(item['page_index'], False)
+                kind, value = page_background.plan_cover(raw, original[item['page_index']], item['page_index'],
+                                                         page, rect, removed)
+                page_background.apply_cover(page, rect, kind, value)
+                info['covers'][kind] = info['covers'].get(kind, 0) + 1
+        finally:
+            if original is not None:
+                original.close()
 
         # 3) Draw the replacement text.
         inserted = set()
@@ -1668,36 +1692,63 @@ def _float_field(name, default=1.0, low=0.0, high=5.0):
     return max(low, min(high, value))
 
 
-@app.route('/api/enhance-image', methods=['POST'])
-def enhance_image():
+ENHANCE_PREVIEW_MAX = 1200   # longest side of live previews, in pixels
+
+
+def _open_upload_image(file_storage, mode):
+    """Open an uploaded image upright (phone photos carry their rotation in EXIF)."""
+    img = Image.open(file_storage.stream)
+    img = ImageOps.exif_transpose(img)
+    return img.convert(mode)
+
+
+def _enhance(img, brightness, contrast, color, sharpness):
+    if brightness != 1.0: img = ImageEnhance.Brightness(img).enhance(brightness)
+    if contrast != 1.0: img = ImageEnhance.Contrast(img).enhance(contrast)
+    if color != 1.0: img = ImageEnhance.Color(img).enhance(color)
+    if sharpness != 1.0: img = ImageEnhance.Sharpness(img).enhance(sharpness)
+    return img
+
+
+def _enhance_request(preview):
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
 
     file = request.files['file']
     try:
-        brightness = _float_field('brightness')
-        contrast = _float_field('contrast')
-        color = _float_field('color')
-        sharpness = _float_field('sharpness')
-
+        params = [_float_field(name) for name in ('brightness', 'contrast', 'color', 'sharpness')]
         try:
-            img = Image.open(file.stream).convert('RGB')
+            img = _open_upload_image(file, 'RGB')
         except Exception:
             return jsonify({'error': 'That file is not a supported image.'}), 400
 
-        if brightness != 1.0: img = ImageEnhance.Brightness(img).enhance(brightness)
-        if contrast != 1.0: img = ImageEnhance.Contrast(img).enhance(contrast)
-        if color != 1.0: img = ImageEnhance.Color(img).enhance(color)
-        if sharpness != 1.0: img = ImageEnhance.Sharpness(img).enhance(sharpness)
+        if preview and max(img.size) > ENHANCE_PREVIEW_MAX:
+            img.thumbnail((ENHANCE_PREVIEW_MAX, ENHANCE_PREVIEW_MAX), Image.Resampling.LANCZOS)
+        img = _enhance(img, *params)
 
         out = io.BytesIO()
-        img.save(out, format='JPEG', quality=95)
+        img.save(out, format='JPEG', quality=85 if preview else 95)
         out.seek(0)
+        if preview:
+            response = send_file(out, mimetype='image/jpeg')
+            response.headers['Cache-Control'] = 'no-store'
+            return response
         return send_file(out, mimetype='image/jpeg', as_attachment=True, download_name='enhanced.jpg')
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/enhance-image', methods=['POST'])
+def enhance_image():
+    return _enhance_request(preview=False)
+
+
+@app.post('/api/enhance-image/preview')
+def enhance_image_preview():
+    """Same adjustments as the download, on a smaller copy, for the live preview."""
+    return _enhance_request(preview=True)
 
 
 _REMBG_SESSION = None
@@ -1723,7 +1774,7 @@ def remove_bg():
     try:
         from rembg import remove
         try:
-            img = Image.open(file.stream).convert('RGBA')
+            img = _open_upload_image(file, 'RGBA')
         except Exception:
             return jsonify({'error': 'That file is not a supported image.'}), 400
 
