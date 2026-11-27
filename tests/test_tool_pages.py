@@ -70,3 +70,16 @@ def test_service_worker_caches_tool_page_assets():
     client = app_module.app.test_client()
     sw = client.get('/sw.js').get_data(as_text=True)
     assert "'/static/tool-page.js'" in sw and "'/static/tool-page.css'" in sw
+
+
+def test_home_tool_sections_wrap_each_category_once():
+    sections = re.findall(r'<section class="tool-section" data-group="([^"]+)">', INDEX)
+    groups = re.findall(r'<h2 class="tool-group" data-group="([^"]+)">', INDEX)
+    assert sections == groups and len(set(sections)) == len(sections) == 6
+    grid = INDEX[INDEX.index('id="toolGrid"'):INDEX.index('id="toolEmpty"')]
+    for g in sections:
+        block = grid[grid.index(f'data-group="{g}">'):]
+        block = block[:block.index('</section>')]
+        cats = set(re.findall(r'class="tool-card" data-category="([^"]+)"', block))
+        assert cats == {g}, g
+    assert 'function layoutToolSections()' in INDEX and "section.hidden = group.hidden" in INDEX

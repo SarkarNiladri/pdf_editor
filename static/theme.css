@@ -371,3 +371,45 @@ input[type="range"], input[type="checkbox"], input[type="radio"] { accent-color:
 
 /* Stacked image tools on phones: no empty gap between the controls and the preview. */
 @media (max-width: 900px) { .split-grid { align-content: start !important; height: auto !important; } .split-grid > .card-panel { height: auto !important; } }
+
+/* ---------- Home: tool sections ----------
+   Phones and tablets: sections are invisible wrappers, so the tool grid looks
+   exactly as before. Computers: each category is a panel and the panels flow
+   in balanced columns, so short categories don't leave empty space. */
+.tool-section { display: contents; }
+.tool-section[hidden] { display: none !important; }
+@media (min-width: 1024px) {
+  .tool-grid { display: block !important; column-count: 3; column-gap: 20px; }
+  .tool-section {
+    display: block; break-inside: avoid; margin: 0 0 20px; padding: 16px 14px 10px;
+    background: #fff; border: 1px solid #ece8fb; border-radius: 20px;
+    box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 14px 30px -24px rgba(76,29,149,.45);
+    border-top: 4px solid var(--cat, var(--accent));
+  }
+  .tool-section[data-group="pdf"] { --cat: #7c3aed; } .tool-section[data-group="ai"] { --cat: #db2777; }
+  .tool-section[data-group="organize"] { --cat: #0891b2; } .tool-section[data-group="convert"] { --cat: #2563eb; }
+  .tool-section[data-group="image"] { --cat: #ea580c; } .tool-section[data-group="security"] { --cat: #059669; }
+  .tool-section .tool-group { margin: 0 4px 8px !important; font-size: 16px; }
+  .tool-section .tool-card {
+    margin: 0 0 4px; padding: 11px 36px 11px 10px !important; grid-template-columns: 42px 1fr; column-gap: 12px;
+    border: 1px solid transparent !important; border-left-width: 1px !important; box-shadow: none !important; background: transparent !important; border-radius: 14px !important;
+  }
+  .tool-section .tool-card::before { display: none !important; }
+  .tool-section .tool-card .tool-icon { width: 42px !important; height: 42px !important; font-size: 20px !important; grid-row: span 2; }
+  .tool-section .tool-card h3 { align-self: end; font-size: 14.5px !important; }
+  .tool-section .tool-card p { align-self: start; font-size: 12.5px !important; line-height: 1.4; }
+  .tool-section .tool-card::after { top: 50%; right: 14px; transform: translateY(-50%); }
+  .tool-section .tool-card:hover { transform: none !important; background: var(--accent-soft) !important; border-color: #e3defd !important; }
+  .tool-section .tool-card:hover::after { transform: translate(3px, -50%); }
+  /* One category picked (or one left after a search): a single wide panel. */
+  .tool-grid.one-section { column-count: 1; }
+  .tool-grid.one-section .tool-section { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 10px; }
+  .tool-grid.one-section .tool-section .tool-group { grid-column: 1 / -1; }
+}
+@media (min-width: 1024px) and (max-width: 1199px) { .tool-grid { column-count: 2; } }
+/* With JavaScript: a masonry grid (index.html layoutToolSections) so panels fill the shortest column first. */
+@media (min-width: 1024px) {
+  .tool-grid.masonry { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; grid-auto-rows: 4px; gap: 0 20px !important; grid-auto-flow: row dense; align-items: start; }
+  .tool-grid.masonry.one-section { grid-template-columns: 1fr !important; }
+}
+@media (min-width: 1024px) and (max-width: 1199px) { .tool-grid.masonry { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
