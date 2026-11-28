@@ -88,7 +88,7 @@ STATIC_DIR = PROJECT_ROOT / 'static'
 # Files the service worker keeps for offline use. Their combined hash names the
 # cache, so a deploy that changes any of them replaces the cached copies.
 PWA_SHELL_FILES = ('index.html', 'edit_existing_text.html', 'converter.html',
-                   'static/theme.css', 'static/pwa.js', 'static/net.js', 'static/tool-page.js', 'static/tool-page.css', 'static/image-tools.js', 'static/offline.html',
+                   'static/theme.css', 'static/pwa.js', 'static/net.js', 'static/tool-page.js', 'static/tool-page.css', 'static/image-tools.js', 'static/remove-bg.js', 'static/offline.html',
                    'static/manifest.webmanifest', 'static/sw.js')
 
 
@@ -1834,6 +1834,128 @@ def remove_bg():
     except Exception as e:
         app.logger.exception('remove-bg failed')
         return jsonify({'error': str(e)}), 500
+
+
+# ---------- Remove Background without AI: "Box" mode (OpenCV GrabCut) ----------
+# The browser sends its working copy of the photo (already upright), the box the
+# person drew, and optionally their brush marks. We answer with a greyscale mask
+# of the same size: white = keep, black = remove. GrabCut runs on a smaller copy
+# (it is slow on big images) and the mask is scaled back up with a soft edge.
+GRABCUT_MAX = 720
+GRABCUT_INPUT_MAX = 2400
+
+
+def _grabcut_mask(rgb, rect, hints=None, iterations=5):
+    """rgb: HxWx3 uint8. rect: (x, y, w, h) in rgb's pixels. hints: HxW uint8 or None
+    (255 = keep, 0 = remove, anything else = no mark). Returns an HxW uint8 alpha mask."""
+    import cv2
+    import numpy as np
+
+    h, w = rgb.shape[:2]
+    x, y, rw, rh = (int(round(v)) for v in rect)
+    x, y = max(0, min(x, w - 1)), max(0, min(y, h - 1))
+    rw, rh = max(1, min(rw, w - x)), max(1, min(rh, h - y))
+    if rw < 4 or rh < 4:
+        raise ValueError('Draw a bigger box around the subject.')
+
+    scale = min(1.0, GRABCUT_MAX / max(w, h))
+    sw, sh = max(1, round(w * scale)), max(1, round(h * scale))
+    small = cv2.resize(rgb, (sw, sh), interpolation=cv2.INTER_AREA) if scale < 1 else rgb
+    bgr = np.ascontiguousarray(small[:, :, ::-1])
+
+    sx, sy = int(x * scale), int(y * scale)
+    ex, ey = min(sw, int(np.ceil((x + rw) * scale))), min(sh, int(np.ceil((y + rh) * scale)))
+    mask = np.full((sh, sw), cv2.GC_BGD, np.uint8)
+    mask[sy:ey, sx:ex] = cv2.GC_PR_FGD
+
+    if hints is not None:
+        small_hints = cv2.resize(hints, (sw, sh), interpolation=cv2.INTER_NEAREST) if scale < 1 else hints
+        mask[small_hints == 255] = cv2.GC_FGD
+        mask[small_hints == 0] = cv2.GC_BGD
+
+    # GrabCut needs some of both to learn the colours from.
+    if not (mask == cv2.GC_BGD).any():
+        mask[0, :] = mask[-1, :] = mask[:, 0] = mask[:, -1] = cv2.GC_BGD
+    if not np.isin(mask, (cv2.GC_FGD, cv2.GC_PR_FGD)).any():
+        return np.zeros((h, w), np.uint8)
+
+    bgd, fgd = np.zeros((1, 65), np.float64), np.zeros((1, 65), np.float64)
+    cv2.grabCut(bgr, mask, None, bgd, fgd, iterations, cv2.GC_INIT_WITH_MASK)
+    fg = np.isin(mask, (cv2.GC_FGD, cv2.GC_PR_FGD)).astype(np.uint8)
+
+    # Drop specks and fill pinholes: keep pieces bigger than 1% of the largest one,
+    # plus anything the person marked "keep".
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(fg, connectivity=8)
+    if count > 2:
+        areas = stats[1:, cv2.CC_STAT_AREA]
+        keep = np.zeros(count, bool)
+        keep[1:] = areas >= max(1, areas.max() * 0.01)
+        if hints is not None:
+            marked = np.unique(labels[(small_hints == 255) & (fg == 1)])
+            keep[marked[marked > 0]] = True
+        fg = keep[labels].astype(np.uint8)
+    holes = cv2.morphologyEx(fg, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
+    fg = np.maximum(fg, holes)
+    if hints is not None:
+        fg[small_hints == 0] = 0
+
+    # Back to full size with a soft, anti-aliased edge.
+    alpha = fg.astype(np.float32)
+    if scale < 1:
+        alpha = cv2.resize(alpha, (w, h), interpolation=cv2.INTER_LINEAR)
+        sigma = max(0.6, 0.5 / scale)
+        alpha = cv2.GaussianBlur(alpha, (0, 0), sigma)
+        alpha = np.clip((alpha - 0.5) * 2.2 + 0.5, 0, 1)
+    out = (alpha * 255).round().astype(np.uint8)
+    if hints is not None:
+        out[hints == 255] = 255
+        out[hints == 0] = 0
+    return out
+
+
+@app.route('/api/remove-bg/box', methods=['POST'])
+def remove_bg_box():
+    """Cut out the subject inside a box (no AI). Returns a greyscale PNG mask."""
+    import numpy as np
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+    try:
+        rect = tuple(float(request.form[k]) for k in ('x', 'y', 'w', 'h'))
+        if not all(np.isfinite(rect)):
+            raise ValueError
+    except (KeyError, ValueError):
+        return jsonify({'error': 'Draw a box around the subject first.'}), 400
+    try:
+        img = _open_upload_image(request.files['file'], 'RGB')
+    except Exception:
+        return jsonify({'error': 'That file is not a supported image.'}), 400
+    if max(img.size) > GRABCUT_INPUT_MAX:
+        return jsonify({'error': 'That image is too large.'}), 400
+
+    hints = None
+    if 'hints' in request.files:
+        try:
+            hint_img = Image.open(request.files['hints'].stream).convert('L')
+        except Exception:
+            return jsonify({'error': 'The brush marks could not be read.'}), 400
+        if hint_img.size != img.size:
+            hint_img = hint_img.resize(img.size, Image.Resampling.NEAREST)
+        hints = np.asarray(hint_img, dtype=np.uint8)
+
+    try:
+        mask = _grabcut_mask(np.asarray(img, dtype=np.uint8), rect, hints)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception:
+        app.logger.exception('remove-bg box failed')
+        return jsonify({'error': 'The cut-out failed. Try a slightly bigger box.'}), 500
+
+    out = io.BytesIO()
+    Image.fromarray(mask, 'L').save(out, format='PNG', optimize=False, compress_level=1)
+    out.seek(0)
+    response = send_file(out, mimetype='image/png')
+    response.headers['Cache-Control'] = 'no-store'
+    return response
 
 
 if __name__ == '__main__':

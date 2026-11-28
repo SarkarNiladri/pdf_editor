@@ -8,6 +8,8 @@ python-docx==1.2.0
 pdf2docx==0.5.13
 Pillow==13.0.0
 numpy==2.5.5
+# Remove Background "Draw box" mode (GrabCut). pdf2docx already installs it.
+opencv-python-headless==5.1.0.95
 python-dotenv==1.2.4
 
 # AI tools (imported lazily; the rest of the app runs without them)

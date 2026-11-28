@@ -23,6 +23,7 @@ const SHELL_URLS = [
   '/static/tool-page.js',
   '/static/tool-page.css',
   '/static/image-tools.js',
+  '/static/remove-bg.js',
   '/static/offline.html',
   '/manifest.webmanifest',
   '/static/icons/icon-192.png',

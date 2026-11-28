@@ -115,7 +115,7 @@ def test_image_tools_script_is_served_loaded_and_cached(client):
 
 def test_every_element_the_component_needs_exists_in_index_html():
     """If the page is redesigned, these ids must survive or the previews stop working."""
-    script = (ROOT / 'static/image-tools.js').read_text()
+    script = (ROOT / 'static/image-tools.js').read_text() + (ROOT / 'static/remove-bg.js').read_text()
     html = (ROOT / 'index.html').read_text()
     ids = set(re.findall(r"\$\('([A-Za-z]+)'\)", script))
     ids |= {f'{prefix}{name}' for prefix in ('slider', 'val')
