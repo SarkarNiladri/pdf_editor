@@ -437,7 +437,9 @@
       const fd = new FormData(); fd.append('file', file);
       try {
         const res = await fetch('/api/remove-bg', { method: 'POST', body: fd });
-        if (!res.ok) throw new Error(await errorFrom(res, 'Background removal failed.'));
+        if (!res.ok) throw new Error(await errorFrom(res, res.status >= 502
+          ? 'The server took too long to answer. Please try again in a moment, or use Draw box.'
+          : `Background removal failed (error ${res.status}). Please try again, or use Draw box.`));
         const result = await loadImage(URL.createObjectURL(await res.blob()));
         const c = el('canvas'); c.width = W; c.height = H;
         const actx = c.getContext('2d', { willReadFrequently: true });

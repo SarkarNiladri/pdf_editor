@@ -12,9 +12,9 @@ numpy==2.5.5
 opencv-python-headless==5.1.0.95
 python-dotenv==1.2.4
 
-# AI tools (imported lazily; the rest of the app runs without them)
+# AI tools (imported lazily; the rest of the app runs without them).
+# Remove Background runs its model with onnxruntime directly (see app.py).
 openai==3.60.0
-rembg==2.0.88
 onnxruntime==1.32.0
 
 # ATS checker
