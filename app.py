@@ -1792,18 +1792,62 @@ def enhance_image_preview():
     return _enhance_request(preview=True)
 
 
-_REMBG_SESSION = None
-_REMBG_LOCK = threading.Lock()
+# ---------- Remove Background: "Auto (AI)" mode ----------
+# Runs the small U2-Net model (u2netp, 4.6 MB) with onnxruntime directly. We used
+# to go through the `rembg` package, but importing it compiles pymatting's numba
+# code on every start (37 s on a fast CPU, minutes on a shared one), which made
+# the first AI request time out. The model is downloaded into the Docker image at
+# build time (see Dockerfile); if it is missing it is fetched once on first use.
+AI_MODEL_URL = 'https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx'
+AI_MODEL_MD5 = '8e83ca70e441ab06c318d82300c84806'
+AI_MODEL_PATH = Path(os.environ.get('AI_MODEL_PATH') or (Path.home() / '.cache' / 'pdf-suite' / 'u2netp.onnx'))
+_AI_SESSION = None
+_AI_LOCK = threading.Lock()
 
 
-def _rembg_session():
-    """Load the AI model once and reuse it (it is slow and memory hungry to create)."""
-    global _REMBG_SESSION
-    with _REMBG_LOCK:
-        if _REMBG_SESSION is None:
-            from rembg import new_session
-            _REMBG_SESSION = new_session("u2netp")
-        return _REMBG_SESSION
+def download_ai_model(path=None):
+    """Fetch the model if it isn't there yet (also run by the Dockerfile at build time)."""
+    import urllib.request
+    path = Path(path or AI_MODEL_PATH)
+    if path.is_file():
+        return path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix('.part')
+    with urllib.request.urlopen(AI_MODEL_URL, timeout=60) as res, open(tmp, 'wb') as out:
+        shutil.copyfileobj(res, out)
+    if hashlib.md5(tmp.read_bytes()).hexdigest() != AI_MODEL_MD5:
+        tmp.unlink(missing_ok=True)
+        raise RuntimeError('The AI model download was corrupted. Please try again.')
+    tmp.replace(path)
+    return path
+
+
+def _ai_session():
+    """Load the AI model once and reuse it."""
+    global _AI_SESSION
+    with _AI_LOCK:
+        if _AI_SESSION is None:
+            import onnxruntime as ort
+            options = ort.SessionOptions()
+            options.intra_op_num_threads = 1
+            options.inter_op_num_threads = 1
+            _AI_SESSION = ort.InferenceSession(str(download_ai_model()), options, providers=['CPUExecutionProvider'])
+        return _AI_SESSION
+
+
+def _ai_mask(img):
+    """Alpha mask (PIL 'L', same size as img) of the main subject, as rembg's u2netp did it."""
+    import numpy as np
+    session = _ai_session()
+    small = np.asarray(img.convert('RGB').resize((320, 320), Image.Resampling.LANCZOS), dtype=np.float64)
+    small = small / max(small.max(), 1e-6)
+    small = (small - (0.485, 0.456, 0.406)) / (0.229, 0.224, 0.225)
+    batch = small.transpose(2, 0, 1)[None].astype(np.float32)
+    pred = session.run(None, {session.get_inputs()[0].name: batch})[0][0, 0]
+    lo, hi = float(pred.min()), float(pred.max())
+    pred = (pred - lo) / (hi - lo) if hi > lo else np.zeros_like(pred)
+    mask = Image.fromarray((pred * 255).astype('uint8'), 'L')
+    return mask.resize(img.size, Image.Resampling.LANCZOS)
 
 
 @app.route('/api/remove-bg', methods=['POST'])
@@ -1813,7 +1857,6 @@ def remove_bg():
 
     file = request.files['file']
     try:
-        from rembg import remove
         try:
             img = _open_upload_image(file, 'RGBA')
         except Exception:
@@ -1825,7 +1868,7 @@ def remove_bg():
             ratio = max_size / max(img.width, img.height)
             img = img.resize((int(img.width * ratio), int(img.height * ratio)), Image.Resampling.LANCZOS)
 
-        output = remove(img, session=_rembg_session())
+        output = Image.composite(img, Image.new('RGBA', img.size, (0, 0, 0, 0)), _ai_mask(img))
 
         out = io.BytesIO()
         output.save(out, format='PNG')

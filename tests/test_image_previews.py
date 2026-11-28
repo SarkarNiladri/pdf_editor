@@ -88,19 +88,46 @@ def test_enhance_rejects_bad_input(client, url):
 def test_remove_bg_returns_upright_png(client, monkeypatch):
     seen = {}
 
-    def fake_remove(img, session=None):
+    def fake_mask(img):
         seen['size'] = img.size
-        out = img.copy()
-        out.putalpha(128)
-        return out
+        return Image.new('L', img.size, 128)
 
-    monkeypatch.setitem(sys.modules, 'rembg', types.SimpleNamespace(remove=fake_remove, new_session=lambda name: object()))
-    monkeypatch.setattr(app_module, '_REMBG_SESSION', None)
+    monkeypatch.setattr(app_module, '_ai_mask', fake_mask)
     res = _post(client, '/api/remove-bg', _jpeg(size=(400, 200), exif_orientation=6))
     assert res.status_code == 200 and res.mimetype == 'image/png'
     assert seen['size'] == (200, 400)
     result = _open(res)
     assert result.mode == 'RGBA' and result.size == (200, 400)
+    assert result.getpixel((100, 200))[3] == 128
+
+
+def test_ai_mask_needs_no_rembg_and_matches_its_preprocessing(monkeypatch):
+    """The model is run with onnxruntime directly; check the input it gets and the mask it makes."""
+    seen = {}
+
+    class FakeSession:
+        def get_inputs(self):
+            return [types.SimpleNamespace(name='input.1')]
+
+        def run(self, _, feeds):
+            batch = feeds['input.1']
+            seen['shape'], seen['dtype'] = batch.shape, batch.dtype
+            pred = np.zeros((1, 1, 320, 320), np.float32)
+            pred[0, 0, :, 160:] = 5.0          # right half is "subject"
+            return [pred]
+
+    monkeypatch.setattr(app_module, '_ai_session', lambda: FakeSession())
+    monkeypatch.setitem(sys.modules, 'rembg', None)     # importing rembg would now fail
+    mask = np.asarray(app_module._ai_mask(Image.new('RGBA', (640, 480), (10, 200, 30, 255))))
+    assert seen == {'shape': (1, 3, 320, 320), 'dtype': np.float32}
+    assert mask.shape == (480, 640)
+    assert mask[:, :300].max() < 10 and mask[:, 340:].min() > 245
+
+
+def test_ai_model_is_baked_into_the_image():
+    dockerfile = (ROOT / 'Dockerfile').read_text()
+    assert 'AI_MODEL_PATH=' in dockerfile and 'download_ai_model()' in dockerfile
+    assert 'rembg' not in (ROOT / 'requirements.txt').read_text()
 
 
 # ---------- the browser component ----------

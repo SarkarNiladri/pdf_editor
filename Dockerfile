@@ -24,6 +24,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the application
 COPY . .
 
+# Bake the Remove Background AI model (4.6 MB) into the image, so the first AI
+# request doesn't have to download it.
+ENV AI_MODEL_PATH=/app/models/u2netp.onnx
+RUN python -c "import app; app.download_ai_model()"
+
 # Create a non-root user and give it ownership of the app directory
 # This ensures the app can create its upload/output directories
 RUN useradd -m -u 1000 appuser \
