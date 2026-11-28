@@ -17,6 +17,7 @@
   <script src="/static/net.js"></script>
   <script src="/static/pwa.js" defer></script>
   <script src="/static/image-tools.js" defer></script>
+  <script src="/static/remove-bg.js" defer></script>
   <script src="/static/tool-page.js" defer></script>
   <link rel="stylesheet" href="/static/tool-page.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -291,7 +292,7 @@
         <section class="tool-section" data-group="image">
           <h2 class="tool-group" data-group="image"><span class="tool-group-dot" aria-hidden="true"></span>Image<span class="tool-group-count">3</span></h2>
           <div class="tool-card" data-category="image" onclick="showEnhance()"><div class="tool-icon icon-pink">✨</div><h3>Enhance Image</h3><p>Adjust brightness, contrast, color, and sharpness of any image.</p></div>
-          <div class="tool-card" data-category="image" onclick="showRemoveBg()"><div class="tool-icon icon-gray">✂️</div><h3>Remove Background</h3><p>Automatically remove the background from any image using AI.</p></div>
+          <div class="tool-card" data-category="image" onclick="showRemoveBg()"><div class="tool-icon icon-gray">✂️</div><h3>Remove Background</h3><p>Tap the background, draw a box around the subject, or let AI do it.</p></div>
           <div class="tool-card" data-category="image" onclick="showConverter('image-to-image')"><div class="tool-icon icon-gray">🔄</div><h3>Image to Image</h3><p>Convert between image formats.</p></div>
         </section>
         <section class="tool-section" data-group="security">
@@ -483,7 +484,7 @@
       <!-- Controls -->
       <div class="card-panel">
         <h2 style="font-size:24px; font-weight:700; margin-bottom:8px;">✂️ Remove Background</h2>
-        <p style="color:#64748b; margin-bottom:20px;">AI will automatically remove the background and give you a transparent PNG.</p>
+        <p style="color:#64748b; margin-bottom:20px;">Tap the background, draw a box around the subject, or let AI do it. You get a transparent PNG.</p>
         
         <div class="upload-zone" id="removeBgUploadZone" style="margin-bottom:20px;">
           <span class="icon">📤</span>
